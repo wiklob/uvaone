@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { assignments, courses } from '../data/mockData';
+import { assignments } from '../data/mockData';
 import './Dashboard.css';
 
 export default function Dashboard() {
