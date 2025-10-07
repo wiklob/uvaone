@@ -50,7 +50,8 @@ export const assignments: Assignment[] = [
     title: 'Programming Assignment 3',
     dueDate: '2025-10-05',
     type: 'assignment',
-    status: 'in-progress'
+    status: 'in-progress',
+    isAllDay: true
   },
   {
     id: '2',
@@ -58,7 +59,8 @@ export const assignments: Assignment[] = [
     title: 'Problem Set 5',
     dueDate: '2025-10-03',
     type: 'assignment',
-    status: 'pending'
+    status: 'pending',
+    isAllDay: true
   },
   {
     id: '3',
@@ -66,7 +68,8 @@ export const assignments: Assignment[] = [
     title: 'Lab Report: Projectile Motion',
     dueDate: '2025-10-07',
     type: 'project',
-    status: 'pending'
+    status: 'pending',
+    isAllDay: true
   },
   {
     id: '4',
@@ -74,7 +77,8 @@ export const assignments: Assignment[] = [
     title: 'Midterm Exam',
     dueDate: '2025-10-15',
     type: 'exam',
-    status: 'pending'
+    status: 'pending',
+    isAllDay: true
   },
   {
     id: '5',
@@ -82,7 +86,8 @@ export const assignments: Assignment[] = [
     title: 'Essay Draft 1',
     dueDate: '2025-10-04',
     type: 'assignment',
-    status: 'completed'
+    status: 'completed',
+    isAllDay: true
   }
 ];
 

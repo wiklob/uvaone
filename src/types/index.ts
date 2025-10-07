@@ -16,6 +16,7 @@ export type Assignment = {
   dueDate: string;
   type: 'assignment' | 'exam' | 'project';
   status: 'pending' | 'in-progress' | 'completed';
+  isAllDay?: boolean;
 }
 
 export type ScheduleEvent = {
