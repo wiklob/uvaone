@@ -1,7 +1,6 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { useCourses } from '../hooks/useCourses';
-import type { AssignmentWithSubmission, CourseMaterialWithDetails } from '../types/database';
 import './Courses.css';
 
 export default function Courses() {
@@ -20,19 +19,6 @@ export default function Courses() {
   const [materialFilter, setMaterialFilter] = useState('all');
   const [showRequiredOnly, setShowRequiredOnly] = useState(false);
   const [courseView, setCourseView] = useState<'grid' | 'list'>('list');
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 }
-    }
-  };
-
-  const cardVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: { y: 0, opacity: 1 }
-  };
 
   const getCourseColor = (courseCode: string) => {
     const colors = ['#0066cc', '#28a745', '#dc3545', '#ffc107', '#17a2b8', '#6f42c1'];

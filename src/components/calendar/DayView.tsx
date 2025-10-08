@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import type { CalendarEvent } from '../../types/calendar';
-import { formatTime, formatDate, parseISOToDate, isSameDay } from '../../utils/dateUtils';
+import { formatTime, parseISOToDate, isSameDay } from '../../utils/dateUtils';
 import EventPreview from './EventPreview';
 
 interface DayViewProps {

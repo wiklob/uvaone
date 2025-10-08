@@ -329,9 +329,6 @@ function convertEventToCalendarEvent(event: EventWithDetails): CalendarEvent {
 }
 
 function convertAssignmentToCalendarEvent(assignment: AssignmentWithSubmission): CalendarEvent {
-  const submission = assignment.submission?.[0];
-  const isSubmitted = submission && submission.status !== 'draft';
-
   return {
     id: `assignment-${assignment.id}`,
     title: `${assignment.course?.code}: ${assignment.title}`,
@@ -450,7 +447,7 @@ function expandRecurringEventsForCalendar(
     }
 
     // Generate instances within range
-    while (currentDate <= Math.min(recurrenceEnd.getTime(), endDate.getTime())) {
+    while (currentDate.getTime() <= Math.min(recurrenceEnd.getTime(), endDate.getTime())) {
       if (currentDate >= startDate) {
         const instanceStartTime = new Date(currentDate);
         const instanceEndTime = new Date(currentDate);

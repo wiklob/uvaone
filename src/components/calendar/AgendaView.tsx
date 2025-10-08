@@ -9,7 +9,7 @@ interface AgendaViewProps {
   onSelectEvent: (event: CalendarEvent) => void;
 }
 
-export default function AgendaView({ currentDate, events, onSelectEvent }: AgendaViewProps) {
+export default function AgendaView({ events, onSelectEvent }: AgendaViewProps) {
   const [previewEvent, setPreviewEvent] = useState<CalendarEvent | null>(null);
   const [anchorElement, setAnchorElement] = useState<HTMLElement | null>(null);
 

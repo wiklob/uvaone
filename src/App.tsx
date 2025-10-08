@@ -2,7 +2,6 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import Courses from './pages/Courses';
-import Schedule from './pages/Schedule';
 import Calendar from './pages/Calendar';
 import Grades from './pages/Grades';
 import Messages from './pages/Messages';

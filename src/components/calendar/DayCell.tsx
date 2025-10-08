@@ -1,6 +1,5 @@
 import type { CalendarEvent } from '../../types/calendar';
-import { isToday, isSameDay } from '../../utils/dateUtils';
-import EventCard from './EventCard';
+import { isToday } from '../../utils/dateUtils';
 
 interface DayCellProps {
   date: Date;

@@ -106,7 +106,7 @@ function expandRecurringEvents(
     }
 
     // Generate instances within range
-    while (currentDate <= Math.min(recurrenceEnd.getTime(), endDate.getTime())) {
+    while (currentDate.getTime() <= Math.min(recurrenceEnd.getTime(), endDate.getTime())) {
       if (currentDate >= startDate) {
         const instanceStartTime = new Date(currentDate);
         const instanceEndTime = new Date(currentDate);

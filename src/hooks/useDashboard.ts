@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import type { EventWithDetails, AssignmentWithSubmission, AnnouncementWithDetails, Submission } from '../types/database';
+import type { EventWithDetails, AssignmentWithSubmission } from '../types/database';
 
 // Demo user: Daan Peters (CS student)
 const DEMO_USER_ID = '77777777-7777-7777-7777-777777777777';

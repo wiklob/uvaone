@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import type { CalendarEvent } from '../../types/calendar';
-import { startOfWeek, addDays, formatTime, parseISOToDate, isSameDay } from '../../utils/dateUtils';
+import { startOfWeek, addDays, parseISOToDate, isSameDay } from '../../utils/dateUtils';
 import EventPreview from './EventPreview';
 
 interface WeekViewProps {
@@ -93,7 +93,7 @@ export default function WeekView({ currentDate, events, onSelectEvent, onDayClic
         <div className="week-all-day-section">
           <div className="week-all-day-label">All Day</div>
           <div className="week-all-day-events">
-            {weekDays.map((day, dayIndex) => (
+            {weekDays.map((_, dayIndex) => (
               <div key={dayIndex} className="week-all-day-column">
                 {allDayEventsByDay[dayIndex]?.map(event => (
                   <div
@@ -125,7 +125,7 @@ export default function WeekView({ currentDate, events, onSelectEvent, onDayClic
         </div>
 
         <div className="week-days-grid">
-          {weekDays.map((day, dayIndex) => (
+          {weekDays.map((_, dayIndex) => (
             <div key={dayIndex} className="week-day-column">
               <div className="week-day-hours">
                 {hours.map(hour => (
