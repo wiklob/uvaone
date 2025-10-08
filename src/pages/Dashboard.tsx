@@ -12,6 +12,13 @@ export default function Dashboard() {
     error
   } = useDashboard();
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 18) return 'Good afternoon';
+    return 'Good evening';
+  };
+
   const today = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
@@ -126,7 +133,7 @@ export default function Dashboard() {
         className="page-header"
       >
         <div>
-          <h1 className="page-title">Dashboard</h1>
+          <h1 className="page-title">{getGreeting()}, Daan</h1>
           <p className="page-subtitle">{today}</p>
         </div>
       </motion.div>

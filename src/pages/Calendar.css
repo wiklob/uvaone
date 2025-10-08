@@ -22,9 +22,10 @@
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  padding: 1.5rem 2rem;
+  padding: 0 2rem;
   border-bottom: 1px solid var(--border);
   background: var(--surface);
+  height: 64px;
 }
 
 .calendar-title-section {
@@ -117,6 +118,12 @@
   flex: 1;
   overflow-y: auto;
   min-height: 0;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.calendar-content::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
 /* Month View */

@@ -19,6 +19,7 @@ export default function Courses() {
   const [assignmentFilter, setAssignmentFilter] = useState('all');
   const [materialFilter, setMaterialFilter] = useState('all');
   const [showRequiredOnly, setShowRequiredOnly] = useState(false);
+  const [courseView, setCourseView] = useState<'grid' | 'list'>('list');
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -111,43 +112,128 @@ export default function Courses() {
     <div className="page">
       <div className="content-view">
         <div className="content-tabs">
-          <button
-            className={`content-tab ${contentTab === 'courses' ? 'active' : ''}`}
-            onClick={() => setContentTab('courses')}
-          >
-            📚 All Courses
-          </button>
-          <button
-            className={`content-tab ${contentTab === 'assignments' ? 'active' : ''}`}
-            onClick={() => setContentTab('assignments')}
-          >
-            📝 Assignments
-          </button>
-          <button
-            className={`content-tab ${contentTab === 'materials' ? 'active' : ''}`}
-            onClick={() => setContentTab('materials')}
-          >
-            📖 Materials
-          </button>
-          <button
-            className={`content-tab ${contentTab === 'announcements' ? 'active' : ''}`}
-            onClick={() => setContentTab('announcements')}
-          >
-            📢 Announcements
-          </button>
-          <button
-            className={`content-tab ${contentTab === 'grades' ? 'active' : ''}`}
-            onClick={() => setContentTab('grades')}
-          >
-            📊 Grades
-          </button>
+          <div className="content-tabs-left">
+            <button
+              className={`content-tab ${contentTab === 'courses' ? 'active' : ''}`}
+              onClick={() => setContentTab('courses')}
+            >
+              📚 All Courses
+            </button>
+            <button
+              className={`content-tab ${contentTab === 'assignments' ? 'active' : ''}`}
+              onClick={() => setContentTab('assignments')}
+            >
+              📝 Assignments
+            </button>
+            <button
+              className={`content-tab ${contentTab === 'materials' ? 'active' : ''}`}
+              onClick={() => setContentTab('materials')}
+            >
+              📖 Materials
+            </button>
+            <button
+              className={`content-tab ${contentTab === 'announcements' ? 'active' : ''}`}
+              onClick={() => setContentTab('announcements')}
+            >
+              📢 Announcements
+            </button>
+            <button
+              className={`content-tab ${contentTab === 'grades' ? 'active' : ''}`}
+              onClick={() => setContentTab('grades')}
+            >
+              📊 Grades
+            </button>
+          </div>
+          {contentTab === 'courses' && (
+            <div className="course-view-toggle">
+              <button
+                className={`view-toggle-btn ${courseView === 'grid' ? 'active' : ''}`}
+                onClick={() => setCourseView('grid')}
+                title="Grid view"
+              >
+                ⊞
+              </button>
+              <button
+                className={`view-toggle-btn ${courseView === 'list' ? 'active' : ''}`}
+                onClick={() => setCourseView('list')}
+                title="List view"
+              >
+                ☰
+              </button>
+            </div>
+          )}
         </div>
 
-        {contentTab === 'courses' && (
+        {contentTab === 'courses' && courseView === 'list' && (
           <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="courses-list"
+          >
+          {courses.map((enrollment) => {
+            const course = enrollment.course;
+            const color = getCourseColor(course.code);
+            const pendingAssignments = allAssignments.filter(
+              a => a.course_id === course.id && (!a.submission || a.submission.length === 0)
+            ).length;
+            const materialsCount = enrollment.materialsCount;
+            const announcementsCount = enrollment.announcementsCount;
+
+            return (
+              <div
+                key={enrollment.id}
+                className="course-list-card"
+                style={{ borderLeftColor: color }}
+              >
+                <div className="course-list-header">
+                  <div className="course-list-title">
+                    <span className="course-list-code" style={{ color }}>{course.code}</span>
+                    <span className="course-list-name">{course.title}</span>
+                  </div>
+                  <div className="course-list-credits">{course.ects} EC</div>
+                </div>
+
+                <div className="course-list-divider"></div>
+
+                <div className="course-list-meta">
+                  Period {course.period} • {course.language} • {course.contact_hours} contact hours
+                </div>
+
+                <div className="course-list-stats">
+                  {pendingAssignments > 0 && (
+                    <span className="course-stat">📝 {pendingAssignments} Pending Assignment{pendingAssignments !== 1 ? 's' : ''}</span>
+                  )}
+                  {materialsCount > 0 && (
+                    <span className="course-stat">📚 {materialsCount} Material{materialsCount !== 1 ? 's' : ''}</span>
+                  )}
+                  {announcementsCount > 0 && (
+                    <span className="course-stat">📢 {announcementsCount} Announcement{announcementsCount !== 1 ? 's' : ''}</span>
+                  )}
+                </div>
+
+                {enrollment.final_grade && (
+                  <div className="course-list-grade">
+                    <strong>Current Grade:</strong> {enrollment.final_grade}/10
+                    {enrollment.grade_letter && ` (${enrollment.grade_letter})`}
+                  </div>
+                )}
+
+                <div className="course-list-actions">
+                  <button className="course-btn primary">View Materials</button>
+                  <button className="course-btn">
+                    Announcements {announcementsCount > 0 && `(${announcementsCount})`}
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+          </motion.div>
+        )}
+
+        {contentTab === 'courses' && courseView === 'grid' && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             className="courses-grid"
           >
           {courses.map((enrollment) => {
@@ -158,11 +244,9 @@ export default function Courses() {
             );
 
             return (
-              <motion.div
+              <div
                 key={enrollment.id}
-                variants={cardVariants}
                 className="course-card"
-                whileHover={{ y: -4, boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)' }}
               >
                 <div className="course-header" style={{ borderLeftColor: color }}>
                   <div className="course-code" style={{ color }}>
@@ -226,7 +310,7 @@ export default function Courses() {
                     Announcements {enrollment.announcementsCount > 0 && `(${enrollment.announcementsCount})`}
                   </button>
                 </div>
-              </motion.div>
+              </div>
             );
           })}
           </motion.div>

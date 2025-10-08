@@ -111,9 +111,7 @@ export default function Layout({ children }: LayoutProps) {
             <span className="nav-icon"><PartyPopper size={20} /></span>
             {!isCollapsed && <span>Events</span>}
           </NavLink>
-        </div>
 
-        <div className="sidebar-footer">
           {!isCollapsed && (
             <div className="demo-mode-badge">
               <span className="demo-badge-icon">👤</span>
@@ -123,6 +121,9 @@ export default function Layout({ children }: LayoutProps) {
               </div>
             </div>
           )}
+        </div>
+
+        <div className="sidebar-footer">
           <NavLink to="/profile" className="profile-link" title="Profile">
             <div className="profile-avatar">DP</div>
             {!isCollapsed && (
