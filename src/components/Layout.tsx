@@ -39,7 +39,7 @@ export default function Layout({ children }: LayoutProps) {
       <nav className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
         <div className="sidebar-header">
           <div className="header-content">
-            <img src="/logo/logo-white.png" alt="UvA Logo" className="sidebar-logo" />
+            <img src="/logo/logo_new_white.png" alt="UvA Logo" className="sidebar-logo" />
             {!isCollapsed && (
               <button
                 className="toggle-btn"
@@ -114,12 +114,21 @@ export default function Layout({ children }: LayoutProps) {
         </div>
 
         <div className="sidebar-footer">
+          {!isCollapsed && (
+            <div className="demo-mode-badge">
+              <span className="demo-badge-icon">👤</span>
+              <div className="demo-badge-content">
+                <div className="demo-badge-title">Demo Mode</div>
+                <div className="demo-badge-user">Daan Peters</div>
+              </div>
+            </div>
+          )}
           <NavLink to="/profile" className="profile-link" title="Profile">
-            <div className="profile-avatar">JD</div>
+            <div className="profile-avatar">DP</div>
             {!isCollapsed && (
               <div className="profile-info">
-                <div className="profile-name">John Doe</div>
-                <div className="profile-id">Student ID: 12345678</div>
+                <div className="profile-name">Daan Peters</div>
+                <div className="profile-id">Student ID: 77777777</div>
               </div>
             )}
           </NavLink>

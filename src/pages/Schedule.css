@@ -73,6 +73,11 @@
   gap: 0.25rem;
 }
 
+.day-header.today {
+  background: #e3f2fd;
+  border-bottom-color: var(--primary);
+}
+
 .day-name {
   font-weight: 600;
   color: var(--text-primary);

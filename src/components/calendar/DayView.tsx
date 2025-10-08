@@ -57,13 +57,6 @@ export default function DayView({ currentDate, events, onSelectEvent }: DayViewP
 
   return (
     <div className="day-view">
-      <div className="day-view-header">
-        <h3 className="day-view-title">{formatDate(currentDate)}</h3>
-        <div className="day-view-count">
-          {dayEvents.length} {dayEvents.length === 1 ? 'event' : 'events'}
-        </div>
-      </div>
-
       {allDayEvents.length > 0 && (
         <div className="day-all-day-section">
           <div className="day-all-day-label">All Day Events</div>

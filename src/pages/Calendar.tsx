@@ -12,8 +12,8 @@ export default function Calendar() {
     view,
     selectedDate,
     events,
-    goToNextMonth,
-    goToPrevMonth,
+    goToNext,
+    goToPrevious,
     goToToday,
     setView,
     selectDate,
@@ -26,8 +26,8 @@ export default function Calendar() {
         <CalendarHeader
           currentDate={currentDate}
           view={view}
-          onPrevious={goToPrevMonth}
-          onNext={goToNextMonth}
+          onPrevious={goToPrevious}
+          onNext={goToNext}
           onToday={goToToday}
           onViewChange={setView}
         />
@@ -51,6 +51,10 @@ export default function Calendar() {
               currentDate={currentDate}
               events={events}
               onSelectEvent={selectEvent}
+              onDayClick={(date) => {
+                selectDate(date);
+                setView('day');
+              }}
             />
           )}
           {view === 'day' && (

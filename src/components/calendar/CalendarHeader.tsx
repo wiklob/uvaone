@@ -22,20 +22,34 @@ export default function CalendarHeader({
   const monthName = getMonthName(currentDate);
   const year = getYear(currentDate);
 
+  const getTitle = () => {
+    if (view === 'day') {
+      const weekday = currentDate.toLocaleDateString('en-US', { weekday: 'long' });
+      const month = currentDate.toLocaleDateString('en-US', { month: 'long' });
+      const day = currentDate.getDate();
+      const year = currentDate.getFullYear();
+      return `${weekday}, ${month} ${day}, ${year}`;
+    }
+    return `${monthName} ${year}`;
+  };
+
   return (
     <div className="calendar-header">
       <div className="calendar-title-section">
-        <button className="nav-btn" onClick={onPrevious} aria-label="Previous month">
-          <ChevronLeft size={20} />
-        </button>
         <h2 className="calendar-title">
-          {monthName} {year}
+          {getTitle()}
         </h2>
-        <button className="nav-btn" onClick={onNext} aria-label="Next month">
-          <ChevronRight size={20} />
+      </div>
+
+      <div className="calendar-navigation">
+        <button className="nav-btn" onClick={onPrevious} aria-label="Previous">
+          <ChevronLeft size={20} />
         </button>
         <button className="today-btn" onClick={onToday}>
           Today
+        </button>
+        <button className="nav-btn" onClick={onNext} aria-label="Next">
+          <ChevronRight size={20} />
         </button>
       </div>
 

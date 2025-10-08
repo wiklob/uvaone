@@ -42,6 +42,10 @@ export function addDays(date: Date, days: number): Date {
   return newDate;
 }
 
+export function addWeeks(date: Date, weeks: number): Date {
+  return addDays(date, weeks * 7);
+}
+
 export function startOfWeek(date: Date): Date {
   const newDate = new Date(date);
   const day = newDate.getDay();

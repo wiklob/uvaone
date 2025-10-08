@@ -7,9 +7,10 @@ interface WeekViewProps {
   currentDate: Date;
   events: CalendarEvent[];
   onSelectEvent: (event: CalendarEvent) => void;
+  onDayClick?: (date: Date) => void;
 }
 
-export default function WeekView({ currentDate, events, onSelectEvent }: WeekViewProps) {
+export default function WeekView({ currentDate, events, onSelectEvent, onDayClick }: WeekViewProps) {
   const [previewEvent, setPreviewEvent] = useState<CalendarEvent | null>(null);
   const [anchorElement, setAnchorElement] = useState<HTMLElement | null>(null);
   const gridContainerRef = useRef<HTMLDivElement>(null);
@@ -74,7 +75,12 @@ export default function WeekView({ currentDate, events, onSelectEvent }: WeekVie
       <div className="week-header">
         <div className="time-column-header"></div>
         {weekDays.map((day, index) => (
-          <div key={index} className="week-day-header">
+          <div
+            key={index}
+            className="week-day-header"
+            onClick={() => onDayClick?.(day)}
+            style={{ cursor: onDayClick ? 'pointer' : 'default' }}
+          >
             <div className="week-day-name">
               {day.toLocaleDateString('en-US', { weekday: 'short' })}
             </div>

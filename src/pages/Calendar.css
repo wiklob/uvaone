@@ -19,8 +19,8 @@
 
 /* Calendar Header */
 .calendar-header {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
   padding: 1.5rem 2rem;
   border-bottom: 1px solid var(--border);
@@ -30,7 +30,7 @@
 .calendar-title-section {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  justify-content: flex-start;
 }
 
 .calendar-title {
@@ -38,7 +38,13 @@
   font-weight: 700;
   color: var(--text-primary);
   margin: 0;
-  min-width: 200px;
+}
+
+.calendar-navigation {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-self: center;
 }
 
 .nav-btn {
@@ -81,6 +87,7 @@
   background: var(--background);
   padding: 0.25rem;
   border-radius: 8px;
+  justify-self: end;
 }
 
 .view-btn {
@@ -325,6 +332,11 @@
   background: var(--background);
   padding: 0.75rem;
   text-align: center;
+  transition: background-color 0.2s ease;
+}
+
+.week-day-header:hover {
+  background: #e8e8e8;
 }
 
 .week-day-name {
