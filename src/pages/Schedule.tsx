@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useSchedule } from '../hooks/useSchedule';
 import './Schedule.css';
 
@@ -13,9 +13,25 @@ export default function Schedule() {
     return monday;
   });
 
-  const weekEnd = new Date(currentWeekStart);
-  weekEnd.setDate(currentWeekStart.getDate() + 6);
-  weekEnd.setHours(23, 59, 59, 999);
+  const hasAnimated = useRef(false);
+
+  useEffect(() => {
+    // Reset animation flag when week changes
+    hasAnimated.current = false;
+
+    // Mark as animated after initial render
+    const timer = setTimeout(() => {
+      hasAnimated.current = true;
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [currentWeekStart]);
+
+  const weekEnd = useMemo(() => {
+    const end = new Date(currentWeekStart);
+    end.setDate(currentWeekStart.getDate() + 6);
+    end.setHours(23, 59, 59, 999);
+    return end;
+  }, [currentWeekStart]);
 
   const { events, loading, error } = useSchedule(currentWeekStart, weekEnd);
 
@@ -186,9 +202,9 @@ export default function Schedule() {
                           ...getEventStyle(event.start_time, event.end_time),
                           background: color
                         }}
-                        initial={{ scale: 0.8, opacity: 0 }}
+                        initial={hasAnimated.current ? false : { scale: 0.8, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
-                        transition={{ delay: dayIndex * 0.1 }}
+                        transition={{ delay: hasAnimated.current ? 0 : dayIndex * 0.1 }}
                         whileHover={{ scale: 1.02, boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}
                         title={`${event.lesson.course.code} - ${event.lesson.title}\n${event.lesson.room?.facility?.name} ${event.lesson.room?.name}`}
                       >

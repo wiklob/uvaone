@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import type { EventWithDetails } from '../types/database';
 
@@ -10,11 +10,7 @@ export function useSchedule(startDate: Date, endDate: Date) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchScheduleEvents();
-  }, [startDate, endDate]);
-
-  const fetchScheduleEvents = async () => {
+  const fetchScheduleEvents = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -64,7 +60,11 @@ export function useSchedule(startDate: Date, endDate: Date) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [startDate, endDate]);
+
+  useEffect(() => {
+    fetchScheduleEvents();
+  }, [fetchScheduleEvents]);
 
   return {
     events,
