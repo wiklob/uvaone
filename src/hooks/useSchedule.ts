@@ -13,14 +13,28 @@ export function useSchedule(startDate: Date, endDate: Date) {
   const fetchScheduleEvents = useCallback(async () => {
     try {
       setLoading(true);
+      setError(null);
+
+      // Validate dates
+      if (!startDate || !endDate || isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        console.warn('Invalid dates provided to useSchedule');
+        setEvents([]);
+        setLoading(false);
+        return;
+      }
 
       // Get user's enrolled courses
-      const { data: enrollments } = await supabase
+      const { data: enrollments, error: enrollError } = await supabase
         .from('course_enrollments')
         .select('course_id')
         .eq('user_id', DEMO_USER_ID)
         .eq('role', 'student')
         .eq('status', 'active');
+
+      if (enrollError) {
+        console.error('Error fetching enrollments:', enrollError);
+        throw new Error(`Failed to fetch enrollments: ${enrollError.message}`);
+      }
 
       if (!enrollments || enrollments.length === 0) {
         setEvents([]);
@@ -31,7 +45,7 @@ export function useSchedule(startDate: Date, endDate: Date) {
       const courseIds = enrollments.map(e => e.course_id);
 
       // Fetch events for the date range
-      const { data: dbEvents, error } = await supabase
+      const { data: dbEvents, error: eventsError } = await supabase
         .from('event')
         .select(`
           *,
@@ -47,7 +61,10 @@ export function useSchedule(startDate: Date, endDate: Date) {
         .in('lesson.course_id', courseIds)
         .order('start_time', { ascending: true });
 
-      if (error) throw error;
+      if (eventsError) {
+        console.error('Error fetching events:', eventsError);
+        throw new Error(`Failed to fetch events: ${eventsError.message}`);
+      }
 
       // Expand recurring events within the date range
       const expandedEvents = expandRecurringEvents(dbEvents || [], startDate, endDate);

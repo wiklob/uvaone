@@ -72,9 +72,9 @@ export default function Layout({ children }: LayoutProps) {
             {!isCollapsed && <span>My Courses</span>}
           </NavLink>
 
-          <NavLink to="/schedule" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'} title="Schedule">
+          <NavLink to="/calendar" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'} title="Calendar">
             <span className="nav-icon"><Calendar size={20} /></span>
-            {!isCollapsed && <span>Schedule</span>}
+            {!isCollapsed && <span>Calendar</span>}
           </NavLink>
 
           <NavLink to="/grades" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'} title="Grades">
@@ -111,16 +111,6 @@ export default function Layout({ children }: LayoutProps) {
             <span className="nav-icon"><PartyPopper size={20} /></span>
             {!isCollapsed && <span>Events</span>}
           </NavLink>
-
-          {!isCollapsed && (
-            <div className="demo-mode-badge">
-              <span className="demo-badge-icon">👤</span>
-              <div className="demo-badge-content">
-                <div className="demo-badge-title">Demo Mode</div>
-                <div className="demo-badge-user">Daan Peters</div>
-              </div>
-            </div>
-          )}
         </div>
 
         <div className="sidebar-footer">
