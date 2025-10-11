@@ -29,16 +29,13 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
   gap: 1.5rem;
-  padding: 0 2rem;
 }
 
 .courses-list {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  padding: 0 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
+  width: 100%;
 }
 
 .course-list-card {
@@ -51,6 +48,10 @@
   flex-direction: column;
   gap: 0.75rem;
   transition: all 0.2s ease;
+}
+
+.course-list-card.clickable {
+  cursor: pointer;
 }
 
 .course-list-card:hover {
@@ -100,6 +101,15 @@
 .course-list-meta {
   font-size: 0.875rem;
   color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.course-list-code-small {
+  font-size: 0.813rem;
+  font-weight: 600;
 }
 
 .course-list-stats {
@@ -316,15 +326,35 @@
   background: var(--background);
 }
 
+/* Courses Header */
+.courses-header {
+  position: fixed;
+  top: 0;
+  left: 240px;
+  right: 0;
+  background: white;
+  border-bottom: 2px solid var(--border);
+  z-index: 100;
+  transition: left 0.3s ease;
+}
+
+.sidebar.collapsed ~ .main-content .courses-header {
+  left: 64px;
+}
+
 /* Content Tabs */
 .content-tabs {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 2px solid var(--border);
-  margin-bottom: 2rem;
   overflow-x: auto;
   height: 64px;
+  padding: 0 2rem;
+}
+
+.courses-content {
+  margin-top: 32px;
+  padding-top: 2rem;
 }
 
 .content-tabs-left {
@@ -342,8 +372,7 @@
   font-weight: 500;
   font-size: 0.875rem;
   color: var(--text-secondary);
-  border-bottom: 2px solid transparent;
-  margin-bottom: -2px;
+  border-bottom: 3px solid transparent;
   transition: all 0.2s ease;
   white-space: nowrap;
   height: 100%;
@@ -354,8 +383,6 @@
 .course-view-toggle {
   display: flex;
   gap: 0.25rem;
-  margin-right: 1rem;
-  margin-bottom: -2px;
   background: var(--background);
   border-radius: 6px;
   padding: 0.25rem;
@@ -390,17 +417,13 @@
 .content-tab.active {
   color: var(--primary);
   border-bottom-color: var(--primary);
+  font-weight: 600;
 }
 
 .content-tab:hover:not(.active) {
   color: var(--text-primary);
 }
 
-/* Content View */
-.content-view {
-  display: flex;
-  flex-direction: column;
-}
 
 .content-filters {
   display: flex;

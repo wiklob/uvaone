@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import Courses from './pages/Courses';
+import CourseDetail from './pages/CourseDetail';
 import Calendar from './pages/Calendar';
 import Grades from './pages/Grades';
 import Messages from './pages/Messages';
@@ -19,6 +20,12 @@ function App() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/courses" element={<Courses />} />
+          <Route path="/courses/:tab" element={<Courses />} />
+          <Route path="/course/:id" element={<CourseDetail />} />
+          <Route path="/course/:id/:tab" element={<CourseDetail />} />
+          <Route path="/course/:id/assignment/:itemId" element={<CourseDetail />} />
+          <Route path="/course/:id/lesson/:itemId" element={<CourseDetail />} />
+          <Route path="/course/:id/announcement/:itemId" element={<CourseDetail />} />
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/grades" element={<Grades />} />
           <Route path="/messages" element={<Messages />} />

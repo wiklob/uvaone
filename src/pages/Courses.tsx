@@ -1,24 +1,44 @@
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useCourses } from '../hooks/useCourses';
 import './Courses.css';
 
+type ContentTab = 'all_courses' | 'assignments' | 'materials' | 'announcements' | 'grades';
+
 export default function Courses() {
+  const navigate = useNavigate();
+  const { tab } = useParams<{ tab?: string }>();
   const {
     courses,
     allAssignments,
     allMaterials,
     allAnnouncements,
-    contentTab,
-    setContentTab,
     loading,
     error
   } = useCourses();
 
+  const [contentTab, setContentTab] = useState<ContentTab>('all_courses');
   const [assignmentFilter, setAssignmentFilter] = useState('all');
   const [materialFilter, setMaterialFilter] = useState('all');
   const [showRequiredOnly, setShowRequiredOnly] = useState(false);
   const [courseView, setCourseView] = useState<'grid' | 'list'>('list');
+
+  // Sync tab state with URL
+  useEffect(() => {
+    const validTabs: ContentTab[] = ['all_courses', 'assignments', 'materials', 'announcements', 'grades'];
+    if (tab && validTabs.includes(tab as ContentTab)) {
+      setContentTab(tab as ContentTab);
+    } else {
+      // Default to all_courses if no tab or invalid tab
+      navigate('/courses/all_courses', { replace: true });
+    }
+  }, [tab, navigate]);
+
+  const handleTabChange = (newTab: ContentTab) => {
+    setContentTab(newTab);
+    navigate(`/courses/${newTab}`);
+  };
 
   const getCourseColor = (courseCode: string) => {
     const colors = ['#0066cc', '#28a745', '#dc3545', '#ffc107', '#17a2b8', '#6f42c1'];
@@ -95,42 +115,42 @@ export default function Courses() {
   }
 
   return (
-    <div className="page">
-      <div className="content-view">
+    <>
+      <div className="courses-header">
         <div className="content-tabs">
           <div className="content-tabs-left">
             <button
-              className={`content-tab ${contentTab === 'courses' ? 'active' : ''}`}
-              onClick={() => setContentTab('courses')}
+              className={`content-tab ${contentTab === 'all_courses' ? 'active' : ''}`}
+              onClick={() => handleTabChange('all_courses')}
             >
               📚 All Courses
             </button>
             <button
               className={`content-tab ${contentTab === 'assignments' ? 'active' : ''}`}
-              onClick={() => setContentTab('assignments')}
+              onClick={() => handleTabChange('assignments')}
             >
               📝 Assignments
             </button>
             <button
               className={`content-tab ${contentTab === 'materials' ? 'active' : ''}`}
-              onClick={() => setContentTab('materials')}
+              onClick={() => handleTabChange('materials')}
             >
               📖 Materials
             </button>
             <button
               className={`content-tab ${contentTab === 'announcements' ? 'active' : ''}`}
-              onClick={() => setContentTab('announcements')}
+              onClick={() => handleTabChange('announcements')}
             >
               📢 Announcements
             </button>
             <button
               className={`content-tab ${contentTab === 'grades' ? 'active' : ''}`}
-              onClick={() => setContentTab('grades')}
+              onClick={() => handleTabChange('grades')}
             >
               📊 Grades
             </button>
           </div>
-          {contentTab === 'courses' && (
+          {contentTab === 'all_courses' && (
             <div className="course-view-toggle">
               <button
                 className={`view-toggle-btn ${courseView === 'grid' ? 'active' : ''}`}
@@ -149,8 +169,10 @@ export default function Courses() {
             </div>
           )}
         </div>
+      </div>
 
-        {contentTab === 'courses' && courseView === 'list' && (
+      <div className="courses-content">
+        {contentTab === 'all_courses' && courseView === 'list' && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -168,21 +190,26 @@ export default function Courses() {
             return (
               <div
                 key={enrollment.id}
-                className="course-list-card"
+                className="course-list-card clickable"
                 style={{ borderLeftColor: color }}
+                onClick={() => navigate(`/course/${course.id}/overview`)}
               >
                 <div className="course-list-header">
                   <div className="course-list-title">
-                    <span className="course-list-code" style={{ color }}>{course.code}</span>
                     <span className="course-list-name">{course.title}</span>
                   </div>
-                  <div className="course-list-credits">{course.ects} EC</div>
                 </div>
 
-                <div className="course-list-divider"></div>
-
                 <div className="course-list-meta">
-                  Period {course.period} • {course.language} • {course.contact_hours} contact hours
+                  <span className="course-list-code-small" style={{ color }}>{course.code}</span>
+                  <span>•</span>
+                  <span>{course.ects} EC</span>
+                  <span>•</span>
+                  <span>Period {course.period}</span>
+                  <span>•</span>
+                  <span>{course.language}</span>
+                  <span>•</span>
+                  <span>{course.contact_hours} contact hours</span>
                 </div>
 
                 <div className="course-list-stats">
@@ -203,20 +230,13 @@ export default function Courses() {
                     {enrollment.grade_letter && ` (${enrollment.grade_letter})`}
                   </div>
                 )}
-
-                <div className="course-list-actions">
-                  <button className="course-btn primary">View Materials</button>
-                  <button className="course-btn">
-                    Announcements {announcementsCount > 0 && `(${announcementsCount})`}
-                  </button>
-                </div>
               </div>
             );
           })}
           </motion.div>
         )}
 
-        {contentTab === 'courses' && courseView === 'grid' && (
+        {contentTab === 'all_courses' && courseView === 'grid' && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -610,6 +630,6 @@ export default function Courses() {
             </motion.div>
         )}
       </div>
-    </div>
+    </>
   );
 }

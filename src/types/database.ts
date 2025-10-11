@@ -108,7 +108,7 @@ export type Assignment = {
   course_id: string;
   title: string;
   description: string | null;
-  type: 'homework' | 'essay' | 'project' | 'exam' | 'quiz' | 'presentation';
+  type: 'homework' | 'essay' | 'project' | 'exam' | 'quiz' | 'presentation' | 'preparation';
   max_points: number | null;
   weight: number | null;
   due_date: string | null;
@@ -118,7 +118,9 @@ export type Assignment = {
   published: boolean;
   created_at: string;
   updated_at: string;
+  lesson_id: string | null;
   course?: Course;
+  lesson?: Lesson;
 };
 
 export type Submission = {
