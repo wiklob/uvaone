@@ -103,7 +103,7 @@ export default function Grades() {
             (sum, a) => sum + ((a.submission?.grade || 0) / a.max_points) * (a.weight || 0),
             0
           );
-          currentGrade = totalWeight > 0 ? (weightedSum / totalWeight) * 100 : null;
+          currentGrade = totalWeight > 0 ? (weightedSum / totalWeight) * 10 : null;
         }
 
         coursesWithGrades.push({
@@ -234,7 +234,7 @@ export default function Grades() {
                         <div className={`grade-value ${getGradeClass(course.currentGrade)}`}>
                           {course.currentGrade.toFixed(1)}
                         </div>
-                        <div className="grade-sublabel">percent</div>
+                        <div className="grade-sublabel">out of 10</div>
                       </div>
                     )}
                     {course.final_grade !== null && (

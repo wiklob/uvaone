@@ -81,6 +81,7 @@ export default function CourseDetail() {
   const [currentGrade, setCurrentGrade] = useState<number | null>(null);
   const [timelineItems, setTimelineItems] = useState<TimelineItem[]>([]);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+  const [submittedAssignments, setSubmittedAssignments] = useState<Set<string>>(new Set());
 
   // Determine item type from pathname for detail views
   const pathname = location.pathname;
@@ -108,6 +109,65 @@ export default function CourseDetail() {
       fetchCourseData();
     }
   }, [id]);
+
+  // Helper function to expand recurring events into multiple occurrences
+  const expandRecurringEvent = (event: any): any[] => {
+    if (!event.is_recurring || !event.recurrence_rule || !event.recurrence_end_date) {
+      return [event]; // Return as-is if not recurring
+    }
+
+    const occurrences: any[] = [];
+    const startDate = new Date(event.start_time);
+    const endDate = new Date(event.end_time);
+    const recurrenceEndDate = new Date(event.recurrence_end_date);
+    const duration = endDate.getTime() - startDate.getTime();
+
+    let currentDate = new Date(startDate);
+    let occurrenceNumber = 0;
+
+    while (currentDate <= recurrenceEndDate) {
+      // Create a new occurrence
+      const occurrenceStart = new Date(currentDate);
+      const occurrenceEnd = new Date(currentDate.getTime() + duration);
+
+      // Remove "Week X" from the title
+      let updatedTitle = event.title;
+      if (updatedTitle) {
+        updatedTitle = updatedTitle.replace(/\s*-?\s*Week \d+/i, '');
+      }
+
+      occurrences.push({
+        ...event,
+        // Generate unique ID for each occurrence
+        id: `${event.id}-occurrence-${occurrenceNumber}`,
+        title: updatedTitle,
+        start_time: occurrenceStart.toISOString(),
+        end_time: occurrenceEnd.toISOString(),
+        // Keep original event ID for navigation
+        original_event_id: event.id
+      });
+
+      occurrenceNumber++;
+
+      // Calculate next occurrence based on recurrence rule
+      switch (event.recurrence_rule) {
+        case 'DAILY':
+          currentDate.setDate(currentDate.getDate() + 1);
+          break;
+        case 'WEEKLY':
+          currentDate.setDate(currentDate.getDate() + 7);
+          break;
+        case 'MONTHLY':
+          currentDate.setMonth(currentDate.getMonth() + 1);
+          break;
+        default:
+          // Unknown recurrence rule, break the loop
+          currentDate = new Date(recurrenceEndDate.getTime() + 1);
+      }
+    }
+
+    return occurrences;
+  };
 
   const fetchCourseData = async () => {
     try {
@@ -213,23 +273,28 @@ export default function CourseDetail() {
       // Build timeline items from events and assignments
       const timeline: TimelineItem[] = [];
 
-      // Add events with their lesson info
+      // Add events with their lesson info (expanding recurring events)
       if (eventsData && lessonsData) {
         eventsData.forEach(event => {
           const lesson = lessonsData.find(l => l.id === event.lesson_id);
           if (lesson) {
-            timeline.push({
-              id: event.id,
-              type: 'lesson',
-              title: event.title || lesson.title,
-              date: event.start_time,
-              endDate: event.end_time,
-              description: event.description || lesson.description,
-              lessonType: lesson.type,
-              isOnline: event.is_online,
-              status: event.status,
-              roomName: lesson.room?.name,
-              facilityName: lesson.room?.facility?.name
+            // Expand recurring events into multiple occurrences
+            const eventOccurrences = expandRecurringEvent(event);
+
+            eventOccurrences.forEach(occurrence => {
+              timeline.push({
+                id: occurrence.id, // Will be unique for each occurrence
+                type: 'lesson',
+                title: occurrence.title || lesson.title,
+                date: occurrence.start_time,
+                endDate: occurrence.end_time,
+                description: occurrence.description || lesson.description,
+                lessonType: lesson.type,
+                isOnline: occurrence.is_online,
+                status: occurrence.status,
+                roomName: lesson.room?.name,
+                facilityName: lesson.room?.facility?.name
+              });
             });
           }
         });
@@ -315,6 +380,15 @@ export default function CourseDetail() {
       } else {
         newSet.add(itemId);
       }
+      return newSet;
+    });
+  };
+
+  const handleSubmit = (assignmentId: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent navigation
+    setSubmittedAssignments(prev => {
+      const newSet = new Set(prev);
+      newSet.add(assignmentId);
       return newSet;
     });
   };
@@ -568,42 +642,247 @@ export default function CourseDetail() {
       <div className="course-detail-content">
         {activeTab === 'overview' && (
           <div className="tab-content">
-            <div className="overview-section">
-              <h3 className="section-heading">Course Description</h3>
-              <p className="course-description">{course.description || 'No description available.'}</p>
-            </div>
+            {(() => {
+              const now = new Date();
 
-            <div className="overview-stats-grid">
-              <div className="overview-stat-card">
-                <div className="stat-icon">📝</div>
-                <div className="stat-value">{assignments.length}</div>
-                <div className="stat-label">Assignments</div>
-              </div>
-              <div className="overview-stat-card">
-                <div className="stat-icon">📄</div>
-                <div className="stat-value">{materials.length}</div>
-                <div className="stat-label">Materials</div>
-              </div>
-              <div className="overview-stat-card">
-                <div className="stat-icon">📢</div>
-                <div className="stat-value">{announcements.length}</div>
-                <div className="stat-label">Announcements</div>
-              </div>
-            </div>
+              // Get upcoming timeline items (next 5)
+              const upcomingItems = timelineItems
+                .filter(item => new Date(item.date) > now)
+                .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                .slice(0, 5);
 
-            {announcements.length > 0 && (
-              <div className="overview-section">
-                <h3 className="section-heading">Recent Announcements</h3>
-                <div className="announcements-preview">
-                  {announcements.slice(0, 3).map((announcement) => (
-                    <div key={announcement.id} className="announcement-preview-card">
-                      <div className="announcement-preview-title">{announcement.title}</div>
-                      <div className="announcement-preview-date">{formatDate(announcement.created_at)}</div>
+              // Calculate weighted GPA
+              const gradedAssignments = assignments.filter(a => a.submission?.grade != null);
+              const totalWeight = assignments.reduce((sum, a) => sum + (a.weight || 0), 0);
+              const gradedWeight = gradedAssignments.reduce((sum, a) => sum + (a.weight || 0), 0);
+              const weightedGPA = gradedAssignments.length > 0
+                ? gradedAssignments.reduce((sum, a) => {
+                    const percentage = (a.submission!.grade! / a.max_points) * 100;
+                    const gradePoint = percentage / 10; // Convert to 10-point scale
+                    return sum + (gradePoint * (a.weight || 0));
+                  }, 0) / gradedWeight
+                : null;
+              const weightProgress = totalWeight > 0 ? (gradedWeight / totalWeight) * 100 : 0;
+
+              // Get pending assignments (upcoming + not submitted)
+              const pendingAssignments = assignments
+                .filter(a => {
+                  const hasSubmission = a.submission?.grade != null || a.submission?.status === 'submitted';
+                  return !hasSubmission && (!a.due_date || new Date(a.due_date) > now);
+                })
+                .sort((a, b) => {
+                  if (!a.due_date) return 1;
+                  if (!b.due_date) return -1;
+                  return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
+                })
+                .slice(0, 5);
+
+              return (
+                <div className="dashboard-grid">
+                  {/* Timeline Widget */}
+                  <div className="dashboard-widget timeline-widget">
+                    <div className="widget-header">
+                      <h3 className="widget-title">Upcoming Timeline</h3>
+                      <button
+                        className="widget-link-btn"
+                        onClick={() => navigate(`/course/${id}/timeline`)}
+                      >
+                        View All →
+                      </button>
                     </div>
-                  ))}
+                    <div className="widget-body">
+                      {upcomingItems.length === 0 ? (
+                        <div className="widget-empty">
+                          <div className="widget-empty-icon">✅</div>
+                          <div className="widget-empty-text">No upcoming events</div>
+                        </div>
+                      ) : (
+                        <div className="compact-timeline-list">
+                          {upcomingItems.map(item => (
+                            <div
+                              key={`${item.type}-${item.id}`}
+                              className="compact-timeline-item"
+                              onClick={() => {
+                                if (item.type === 'lesson') {
+                                  navigate(`/course/${id}/lesson/${item.id}`);
+                                } else {
+                                  navigate(`/course/${id}/assignment/${item.id}`);
+                                }
+                              }}
+                            >
+                              <div className={`compact-item-marker ${item.type}`}></div>
+                              <div className="compact-item-content">
+                                <div className="compact-item-title">{item.title}</div>
+                                <div className="compact-item-meta">
+                                  {item.type === 'lesson' ? (
+                                    <>
+                                      <span className="compact-meta-badge">
+                                        {item.lessonType === 'lecture' && '📚'}
+                                        {item.lessonType === 'seminar' && '💬'}
+                                        {item.lessonType === 'tutorial' && '👨‍🏫'}
+                                        {item.lessonType === 'lab' && '🔬'}
+                                        {item.lessonType === 'workshop' && '🛠️'}
+                                        {item.lessonType === 'exam' && '📝'}
+                                        {' '}{item.lessonType}
+                                      </span>
+                                      <span>•</span>
+                                      <span>{formatDateTime(item.date)}</span>
+                                      {item.facilityName && (
+                                        <>
+                                          <span>•</span>
+                                          <span>{item.facilityName}</span>
+                                        </>
+                                      )}
+                                    </>
+                                  ) : (
+                                    <>
+                                      <span className="compact-meta-badge">
+                                        {item.assignmentType === 'homework' && '📝'}
+                                        {item.assignmentType === 'essay' && '📄'}
+                                        {item.assignmentType === 'project' && '🚀'}
+                                        {item.assignmentType === 'exam' && '📝'}
+                                        {item.assignmentType === 'quiz' && '❓'}
+                                        {item.assignmentType === 'presentation' && '🎤'}
+                                        {item.assignmentType === 'preparation' && '📖'}
+                                        {' '}{item.assignmentType}
+                                      </span>
+                                      <span>•</span>
+                                      <span>Due {formatDateTime(item.date)}</span>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Grades Widget */}
+                  <div className="dashboard-widget grades-widget">
+                    <div className="widget-header">
+                      <h3 className="widget-title">Your Grades</h3>
+                      <button
+                        className="widget-link-btn"
+                        onClick={() => navigate(`/course/${id}/grades`)}
+                      >
+                        View All →
+                      </button>
+                    </div>
+                    <div className="widget-body centered">
+                      {weightedGPA !== null ? (
+                        <>
+                          <div className="gpa-circle-container">
+                            <svg className="gpa-circle" viewBox="0 0 200 200">
+                              <circle
+                                className="gpa-circle-bg"
+                                cx="100"
+                                cy="100"
+                                r="85"
+                              />
+                              <circle
+                                className="gpa-circle-progress"
+                                cx="100"
+                                cy="100"
+                                r="85"
+                                strokeDasharray={`${(weightProgress / 100) * 534.07} 534.07`}
+                              />
+                            </svg>
+                            <div className="gpa-value-container">
+                              <div className={`gpa-value ${getGradeClass(weightedGPA)}`}>
+                                {weightedGPA.toFixed(2)}
+                              </div>
+                              <div className="gpa-label">GPA</div>
+                            </div>
+                          </div>
+                          <div className="gpa-details">
+                            <div className="gpa-detail-item">
+                              <span className="gpa-detail-label">Graded Weight:</span>
+                              <span className="gpa-detail-value">{weightProgress.toFixed(0)}%</span>
+                            </div>
+                            <div className="gpa-detail-item">
+                              <span className="gpa-detail-label">Assignments Graded:</span>
+                              <span className="gpa-detail-value">{gradedAssignments.length} / {assignments.length}</span>
+                            </div>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="widget-empty">
+                          <div className="widget-empty-icon">📊</div>
+                          <div className="widget-empty-text">No grades yet</div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Assignments Widget */}
+                  <div className="dashboard-widget assignments-widget">
+                    <div className="widget-header">
+                      <h3 className="widget-title">Pending Assignments</h3>
+                      <button
+                        className="widget-link-btn"
+                        onClick={() => navigate(`/course/${id}/assignments`)}
+                      >
+                        View All →
+                      </button>
+                    </div>
+                    <div className="widget-body">
+                      {pendingAssignments.length === 0 ? (
+                        <div className="widget-empty">
+                          <div className="widget-empty-icon">✅</div>
+                          <div className="widget-empty-text">All caught up!</div>
+                        </div>
+                      ) : (
+                        <div className="compact-assignments-list">
+                          {pendingAssignments.map(assignment => (
+                            <div
+                              key={assignment.id}
+                              className="compact-assignment-item"
+                              onClick={() => navigate(`/course/${id}/assignment/${assignment.id}`)}
+                            >
+                              <div className="compact-assignment-left">
+                                <div className="compact-assignment-icon">
+                                  {assignment.type === 'homework' && '📝'}
+                                  {assignment.type === 'essay' && '📄'}
+                                  {assignment.type === 'project' && '🚀'}
+                                  {assignment.type === 'exam' && '📝'}
+                                  {assignment.type === 'quiz' && '❓'}
+                                  {assignment.type === 'presentation' && '🎤'}
+                                  {assignment.type === 'preparation' && '📖'}
+                                </div>
+                                <div className="compact-assignment-info">
+                                  <div className="compact-assignment-title">{assignment.title}</div>
+                                  <div className="compact-assignment-meta">
+                                    <span className="compact-meta-badge">{assignment.type}</span>
+                                    {assignment.due_date && (
+                                      <>
+                                        <span>•</span>
+                                        <span className="compact-assignment-due">
+                                          Due {formatDate(assignment.due_date)}
+                                        </span>
+                                      </>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="compact-assignment-right">
+                                <div className="compact-assignment-weight">
+                                  {(assignment.weight * 100).toFixed(0)}%
+                                </div>
+                                <div className="compact-assignment-points">
+                                  {assignment.max_points} pts
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
           </div>
         )}
 
@@ -620,16 +899,23 @@ export default function CourseDetail() {
                         const now = new Date();
                         const weeks = new Map<number, TimelineItem[]>();
 
-                        // Group items by week
+                        // Find the earliest date to use as Week 1 reference
+                        const earliestDate = timelineItems.length > 0
+                          ? new Date(Math.min(...timelineItems.map(item => new Date(item.date).getTime())))
+                          : now;
+
+                        // Group items by week relative to course start
                         timelineItems.forEach(item => {
                           const itemDate = new Date(item.date);
-                          const weekNum = Math.floor((itemDate.getTime() - now.getTime()) / (7 * 24 * 60 * 60 * 1000));
-                          const week = weekNum + Math.ceil(timelineItems.length / 7);
-                          if (!weeks.has(week)) weeks.set(week, []);
-                          weeks.get(week)!.push(item);
+                          // Calculate week number relative to the earliest date
+                          const daysDiff = Math.floor((itemDate.getTime() - earliestDate.getTime()) / (24 * 60 * 60 * 1000));
+                          const weekNum = Math.floor(daysDiff / 7) + 1; // Week 1, 2, 3, etc.
+
+                          if (!weeks.has(weekNum)) weeks.set(weekNum, []);
+                          weeks.get(weekNum)!.push(item);
                         });
 
-                        return Array.from(weeks.entries()).map(([week, items]) => (
+                        return Array.from(weeks.entries()).sort(([a], [b]) => a - b).map(([week, items]) => (
                           <div key={week} className="minimap-week">
                             <div className="minimap-week-label">Week {week}</div>
                             <div className="minimap-items">
@@ -670,20 +956,28 @@ export default function CourseDetail() {
                       const now = new Date();
                       const weeks = new Map<number, TimelineItem[]>();
 
-                      // Group items by week
+                      // Find the earliest date to use as Week 1 reference
+                      const earliestDate = timelineItems.length > 0
+                        ? new Date(Math.min(...timelineItems.map(item => new Date(item.date).getTime())))
+                        : now;
+
+                      // Group items by week relative to course start
                       timelineItems.forEach(item => {
                         const itemDate = new Date(item.date);
-                        const weekNum = Math.floor((itemDate.getTime() - now.getTime()) / (7 * 24 * 60 * 60 * 1000));
-                        const week = weekNum + Math.ceil(timelineItems.length / 7);
-                        if (!weeks.has(week)) weeks.set(week, []);
-                        weeks.get(week)!.push(item);
+                        // Calculate week number relative to the earliest date
+                        const daysDiff = Math.floor((itemDate.getTime() - earliestDate.getTime()) / (24 * 60 * 60 * 1000));
+                        const weekNum = Math.floor(daysDiff / 7) + 1; // Week 1, 2, 3, etc.
+
+                        if (!weeks.has(weekNum)) weeks.set(weekNum, []);
+                        weeks.get(weekNum)!.push(item);
                       });
 
-                      return Array.from(weeks.entries()).map(([week, items]) => (
+                      return Array.from(weeks.entries()).sort(([a], [b]) => a - b).map(([week, items]) => (
                         <div key={week}>
                           <div className="timeline-week-badge">Week {week}</div>
                           {items.map((item) => {
                             const isExpanded = expandedItems.has(item.id);
+                            const isPast = new Date(item.date) < now;
                             return (
                               <div
                                 key={`${item.type}-${item.id}`}
@@ -691,7 +985,7 @@ export default function CourseDetail() {
                                 className="timeline-item"
                               >
                           <div
-                            className={`timeline-item-card ${item.type} ${isExpanded ? 'expanded' : ''}`}
+                            className={`timeline-item-card ${item.type} ${isExpanded ? 'expanded' : ''} ${isPast ? 'past' : ''}`}
                             onClick={() => {
                               if (item.type === 'lesson') {
                                 toggleExpand(item.id, { stopPropagation: () => {} } as React.MouseEvent);
@@ -780,23 +1074,16 @@ export default function CourseDetail() {
                               {/* Action buttons on the right */}
                               <div className="timeline-item-actions">
                                 {item.type === 'assignment' && item.submissionType !== 'no_submission' && (
-                                  <button className="action-btn primary" onClick={(e) => e.stopPropagation()}>
+                                  <button
+                                    className={`action-btn ${submittedAssignments.has(item.id) ? 'primary' : ''}`}
+                                    onClick={(e) => handleSubmit(item.id, e)}
+                                  >
                                     <div className="action-btn-icon">
                                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                         <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                       </svg>
                                     </div>
-                                    <span>SUBMIT</span>
-                                  </button>
-                                )}
-                                {item.type === 'assignment' && (
-                                  <button className="action-btn secondary" onClick={(e) => e.stopPropagation()}>
-                                    <div className="action-btn-icon">
-                                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <path d="M5 13l4 4L19 7"/>
-                                      </svg>
-                                    </div>
-                                    <span>MARK AS DONE</span>
+                                    <span>{submittedAssignments.has(item.id) ? 'SUBMITTED' : 'SUBMIT'}</span>
                                   </button>
                                 )}
                                 {item.type === 'lesson' && (
@@ -921,79 +1208,212 @@ export default function CourseDetail() {
 
         {activeTab === 'grades' && (
           <div className="tab-content">
-            <div className="grades-summary">
-              {finalGrade !== null && (
-                <div className="grade-card final">
-                  <div className="grade-card-label">Final Grade</div>
-                  <div className={`grade-card-value ${getGradeClass(finalGrade)}`}>
-                    {finalGrade.toFixed(1)}
-                  </div>
-                  <div className="grade-card-sublabel">out of 10</div>
-                </div>
-              )}
-              {currentGrade !== null && (
-                <div className="grade-card current">
-                  <div className="grade-card-label">Current Grade</div>
-                  <div className={`grade-card-value ${getGradeClass(currentGrade / 10)}`}>
-                    {currentGrade.toFixed(1)}%
-                  </div>
-                  <div className="grade-card-sublabel">based on graded work</div>
-                </div>
-              )}
-              {!finalGrade && !currentGrade && (
-                <div className="empty-state-small">
-                  <div className="empty-icon-small">📊</div>
-                  <div className="empty-text">No grades yet</div>
-                </div>
-              )}
-            </div>
+            {/* Grade Composition Table */}
+            {(() => {
+              // Group assignments by type
+              const categories = new Map<string, typeof assignments>();
+              assignments.forEach(assignment => {
+                const type = assignment.type;
+                if (!categories.has(type)) {
+                  categories.set(type, []);
+                }
+                categories.get(type)!.push(assignment);
+              });
 
-            <h3 className="section-heading">Assignment Grades</h3>
-            <div className="assignments-list">
-              {assignments.length === 0 ? (
-                <div className="empty-state-small">
-                  <div className="empty-icon-small">📝</div>
-                  <div className="empty-text">No assignments yet</div>
-                </div>
-              ) : (
-                assignments.map((assignment) => (
-                  <div key={assignment.id} className="assignment-grade-card">
-                    <div className="assignment-grade-left">
-                      <div className={`assignment-status-dot ${
-                        assignment.submission?.grade != null ? 'graded' :
-                        assignment.submission?.status === 'submitted' ? 'pending' :
-                        'not-submitted'
-                      }`}></div>
-                      <div className="assignment-grade-info">
-                        <h4 className="assignment-grade-title">{assignment.title}</h4>
-                        <div className="assignment-grade-meta">
-                          <span className="meta-badge">{assignment.type}</span>
-                          <span className="meta-text">Weight: {(assignment.weight * 100).toFixed(0)}%</span>
-                        </div>
-                      </div>
+              const now = new Date();
+
+              const getAssignmentStatus = (assignment: typeof assignments[0]) => {
+                if (assignment.submission?.grade != null) return 'graded';
+                if (assignment.submission?.status === 'submitted') return 'submitted';
+                if (assignment.due_date && new Date(assignment.due_date) < now) return 'overdue';
+                return 'upcoming';
+              };
+
+              // Calculate totals
+              const totalWeight = assignments.reduce((sum, a) => sum + (a.weight || 0), 0);
+              const gradedAssignments = assignments.filter(a => a.submission?.grade != null);
+              const gradedWeight = gradedAssignments.reduce((sum, a) => sum + (a.weight || 0), 0);
+              const weightedSum = gradedAssignments.reduce(
+                (sum, a) => sum + ((a.submission!.grade! / a.max_points) * (a.weight || 0)),
+                0
+              );
+              const weightedGPA = gradedWeight > 0 ? (weightedSum / gradedWeight) * 10 : null;
+              const weightProgress = totalWeight > 0 ? (gradedWeight / totalWeight) * 100 : 0;
+
+              return (
+                <>
+                  <h3 className="section-heading">Grade Composition</h3>
+
+                  <div className="grade-composition-layout">
+                    {/* Left: Tables */}
+                    <div className="grade-composition-table-container">
+                      {Array.from(categories.entries()).map(([type, items]) => {
+                        const categoryWeight = items.reduce((sum, a) => sum + (a.weight || 0), 0);
+                        const gradedItems = items.filter(a => a.submission?.grade != null);
+                        const categoryGradedWeight = gradedItems.reduce((sum, a) => sum + (a.weight || 0), 0);
+
+                        const weightedSum = gradedItems.reduce(
+                          (sum, a) => sum + ((a.submission!.grade! / a.max_points) * (a.weight || 0)),
+                          0
+                        );
+                        const categoryAvg = categoryGradedWeight > 0 ? (weightedSum / categoryGradedWeight) * 10 : null;
+
+                        return (
+                          <div key={type} className="category-table">
+                            <div className="category-table-header">
+                              <h4>{type.charAt(0).toUpperCase() + type.slice(1)}</h4>
+                              <div className="category-summary">
+                                <span>Weight: {(categoryWeight * 100).toFixed(0)}%</span>
+                                <span>•</span>
+                                <span>Graded: {gradedItems.length}/{items.length}</span>
+                                {categoryAvg !== null && (
+                                  <>
+                                    <span>•</span>
+                                    <span>Average: {categoryAvg.toFixed(1)}/10</span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+
+                            <table className="assignments-table">
+                              <thead>
+                                <tr>
+                                  <th className="col-assignment">Assignment</th>
+                                  <th className="col-weight">Weight</th>
+                                  <th className="col-due">Due Date</th>
+                                  <th className="col-status">Status</th>
+                                  <th className="col-score">Score</th>
+                                  <th className="col-contribution">Contribution</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {items.map((assignment) => {
+                                  const status = getAssignmentStatus(assignment);
+                                  const contribution = assignment.submission?.grade != null
+                                    ? (((assignment.submission.grade / assignment.max_points) * assignment.weight) * 10)
+                                    : 0;
+                                  const maxContribution = assignment.weight * 10;
+
+                                  return (
+                                    <tr key={assignment.id}>
+                                      <td className="col-assignment">{assignment.title}</td>
+                                      <td className="col-weight">{(assignment.weight * 100).toFixed(0)}%</td>
+                                      <td className="col-due">
+                                        {assignment.due_date ? formatDate(assignment.due_date) : 'N/A'}
+                                      </td>
+                                      <td className="col-status">
+                                        <span className={`status-badge-table ${status}`}>
+                                          {status}
+                                        </span>
+                                      </td>
+                                      <td className="col-score">
+                                        {assignment.submission?.grade != null
+                                          ? `${assignment.submission.grade}/${assignment.max_points}`
+                                          : '—'}
+                                      </td>
+                                      <td className="col-contribution">
+                                        {contribution.toFixed(2)}/{maxContribution.toFixed(2)}
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                            </table>
+                          </div>
+                        );
+                      })}
                     </div>
-                    <div className="assignment-grade-right">
-                      {assignment.submission?.grade != null ? (
-                        <div className="grade-display">
-                          <div className={`grade-display-value ${
-                            getGradeClass((assignment.submission.grade / assignment.max_points) * 10)
-                          }`}>
-                            {assignment.submission.grade} / {assignment.max_points}
+
+                    {/* Right: Total Summary Widget */}
+                    <div className="grade-total-widget">
+                      <div className="grade-total-header">
+                        <h4>SUMMARY</h4>
+                      </div>
+
+                      {weightedGPA !== null ? (
+                        <>
+                          <div className="gpa-circle-container">
+                            <svg className="gpa-circle" viewBox="0 0 200 200">
+                              <circle
+                                className="gpa-circle-bg"
+                                cx="100"
+                                cy="100"
+                                r="85"
+                              />
+                              <circle
+                                className="gpa-circle-progress"
+                                cx="100"
+                                cy="100"
+                                r="85"
+                                strokeDasharray={`${(weightProgress / 100) * 534.07} 534.07`}
+                              />
+                            </svg>
+                            <div className="gpa-value-container">
+                              <div className={`gpa-value ${getGradeClass(weightedGPA)}`}>
+                                {weightedGPA.toFixed(2)}
+                              </div>
+                              <div className="gpa-label">CURRENT</div>
+                            </div>
                           </div>
-                          <div className="grade-display-percent">
-                            {((assignment.submission.grade / assignment.max_points) * 100).toFixed(0)}%
+
+                          <div className="grade-total-table">
+                            <table className="total-summary-table">
+                              <thead>
+                                <tr>
+                                  <th>Category</th>
+                                  <th>Weight</th>
+                                  <th>Contribution</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {Array.from(categories.entries()).map(([type, items]) => {
+                                  const categoryWeight = items.reduce((sum, a) => sum + (a.weight || 0), 0);
+                                  const gradedItems = items.filter(a => a.submission?.grade != null);
+                                  const weightedSum = gradedItems.reduce(
+                                    (sum, a) => sum + ((a.submission!.grade! / a.max_points) * (a.weight || 0)),
+                                    0
+                                  );
+                                  const contribution = weightedSum * 10;
+                                  const maxContribution = categoryWeight * 10;
+
+                                  return (
+                                    <tr key={type}>
+                                      <td>{type.charAt(0).toUpperCase() + type.slice(1)}</td>
+                                      <td>{(categoryWeight * 100).toFixed(0)}%</td>
+                                      <td>{contribution.toFixed(2)}/{maxContribution.toFixed(2)}</td>
+                                    </tr>
+                                  );
+                                })}
+                                <tr className="total-row">
+                                  <td>TOTAL</td>
+                                  <td>{(totalWeight * 100).toFixed(0)}%</td>
+                                  <td>{(weightedSum * 10).toFixed(2)}/10.00</td>
+                                </tr>
+                              </tbody>
+                            </table>
                           </div>
-                        </div>
-                      ) : assignment.submission?.status === 'submitted' ? (
-                        <div className="status-badge pending">⏳ Pending</div>
+
+                          <div className="grade-stats-list">
+                            <div className="grade-stat-item">
+                              <span className="stat-item-label">Graded Weight</span>
+                              <span className="stat-item-value">{weightProgress.toFixed(0)}%</span>
+                            </div>
+                            <div className="grade-stat-item">
+                              <span className="stat-item-label">Assignments Graded</span>
+                              <span className="stat-item-value">{gradedAssignments.length}/{assignments.length}</span>
+                            </div>
+                          </div>
+                        </>
                       ) : (
-                        <div className="status-badge not-submitted">Not Submitted</div>
+                        <div className="widget-empty">
+                          <div className="widget-empty-text">No grades yet</div>
+                        </div>
                       )}
                     </div>
                   </div>
-                ))
-              )}
-            </div>
+                </>
+              );
+            })()}
           </div>
         )}
 
