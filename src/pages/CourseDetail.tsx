@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import MaterialCard, { type CourseMaterial as MaterialCardType } from '../components/MaterialCard';
 import './CourseDetail.css';
 
 interface Course {
@@ -33,12 +34,8 @@ interface Submission {
   submitted_at: string;
 }
 
-interface Material {
-  id: string;
-  title: string;
-  type: string;
-  file_url: string;
-  uploaded_at: string;
+interface Material extends MaterialCardType {
+  week?: number;
 }
 
 interface Announcement {
@@ -46,6 +43,12 @@ interface Announcement {
   title: string;
   content: string;
   created_at: string;
+  published_at?: string;
+  priority?: string;
+  author?: {
+    first_name: string;
+    last_name: string;
+  };
 }
 
 interface TimelineItem {
@@ -77,11 +80,18 @@ export default function CourseDetail() {
   const [assignments, setAssignments] = useState<(Assignment & { submission?: Submission })[]>([]);
   const [materials, setMaterials] = useState<Material[]>([]);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  const [finalGrade, setFinalGrade] = useState<number | null>(null);
-  const [currentGrade, setCurrentGrade] = useState<number | null>(null);
+  const [_finalGrade, setFinalGrade] = useState<number | null>(null);
+  const [_currentGrade, setCurrentGrade] = useState<number | null>(null);
   const [timelineItems, setTimelineItems] = useState<TimelineItem[]>([]);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [submittedAssignments, setSubmittedAssignments] = useState<Set<string>>(new Set());
+
+  // Materials filters state
+  const [materialSearch, setMaterialSearch] = useState('');
+  const [showMaterialFilters, setShowMaterialFilters] = useState(false);
+  const [materialTypeFilter, setMaterialTypeFilter] = useState('all');
+  const [materialStatusFilter, setMaterialStatusFilter] = useState('all');
+  const [materialGroupBy, setMaterialGroupBy] = useState<'week' | 'type' | 'none'>('week');
 
   // Determine item type from pathname for detail views
   const pathname = location.pathname;
@@ -231,21 +241,43 @@ export default function CourseDetail() {
         setCurrentGrade(totalWeight > 0 ? (weightedSum / totalWeight) * 100 : null);
       }
 
-      // Fetch materials
+      // Fetch materials with full details
       const { data: materialsData } = await supabase
         .from('course_materials')
-        .select('*')
+        .select(`
+          *,
+          material (*)
+        `)
         .eq('course_id', id)
-        .order('uploaded_at', { ascending: false });
+        .order('order', { ascending: true });
 
-      setMaterials(materialsData || []);
+      // Transform materials data to match our interface
+      const transformedMaterials = (materialsData || []).map((cm: any) => ({
+        id: cm.id,
+        course_id: cm.course_id,
+        material_id: cm.material_id,
+        required: cm.required || false,
+        order: cm.order,
+        material: cm.material,
+        week: cm.week || 0, // Add week assignment if available in DB
+        accessed: false, // TODO: Fetch from user progress tracking table
+        last_accessed: null,
+        // Spread material properties to top level for compatibility
+        ...cm.material
+      }));
 
-      // Fetch announcements
+      setMaterials(transformedMaterials as Material[]);
+
+      // Fetch announcements with author details
       const { data: announcementsData } = await supabase
-        .from('course_announcements')
-        .select('*')
+        .from('announcement')
+        .select(`
+          *,
+          author:user!author_id(first_name, last_name)
+        `)
         .eq('course_id', id)
-        .order('created_at', { ascending: false });
+        .eq('published', true)
+        .order('published_at', { ascending: false });
 
       setAnnouncements(announcementsData || []);
 
@@ -391,6 +423,22 @@ export default function CourseDetail() {
       newSet.add(assignmentId);
       return newSet;
     });
+  };
+
+  const handleMaterialAccess = (materialId: string) => {
+    // Mark material as accessed
+    setMaterials(prev => prev.map(m =>
+      m.id === materialId ? { ...m, accessed: true, last_accessed: new Date().toISOString() } : m
+    ));
+    // In a real app, you'd also update this in the database
+  };
+
+  const handleMaterialMarkAsRead = (materialId: string) => {
+    // Mark material as read/accessed
+    setMaterials(prev => prev.map(m =>
+      m.id === materialId ? { ...m, accessed: true, last_accessed: new Date().toISOString() } : m
+    ));
+    // In a real app, you'd also update this in the database
   };
 
   if (loading) {
@@ -1295,7 +1343,11 @@ export default function CourseDetail() {
                                   const maxContribution = assignment.weight * 10;
 
                                   return (
-                                    <tr key={assignment.id}>
+                                    <tr
+                                      key={assignment.id}
+                                      onClick={() => navigate(`/course/${id}/assignment/${assignment.id}`)}
+                                      style={{ cursor: 'pointer' }}
+                                    >
                                       <td className="col-assignment">{assignment.title}</td>
                                       <td className="col-weight">{(assignment.weight * 100).toFixed(0)}%</td>
                                       <td className="col-due">
@@ -1427,18 +1479,41 @@ export default function CourseDetail() {
                 </div>
               ) : (
                 assignments.map((assignment) => (
-                  <div key={assignment.id} className="assignment-detail-card">
-                    <div className="assignment-detail-header">
-                      <h4 className="assignment-detail-title">{assignment.title}</h4>
-                      <span className="assignment-type-badge">{assignment.type}</span>
-                    </div>
+                  <div
+                    key={assignment.id}
+                    className="assignment-detail-card"
+                    onClick={() => navigate(`/course/${id}/assignment/${assignment.id}`)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    {/* Metadata row */}
                     <div className="assignment-detail-meta">
-                      <span>Max Points: {assignment.max_points}</span>
+                      <span className="assignment-type-badge">
+                        {assignment.type === 'homework' && '📝'}
+                        {assignment.type === 'essay' && '📄'}
+                        {assignment.type === 'project' && '🚀'}
+                        {assignment.type === 'exam' && '📝'}
+                        {assignment.type === 'quiz' && '❓'}
+                        {assignment.type === 'presentation' && '🎤'}
+                        {assignment.type === 'preparation' && '📖'}
+                        {' '}
+                        {assignment.type.toUpperCase()}
+                      </span>
+                      <span className="meta-separator">•</span>
+                      <span>{assignment.max_points} points</span>
+                      <span className="meta-separator">•</span>
                       <span>Weight: {(assignment.weight * 100).toFixed(0)}%</span>
                       {assignment.due_date && (
-                        <span className="due-date">Due: {formatDate(assignment.due_date)}</span>
+                        <>
+                          <span className="meta-separator">•</span>
+                          <span className="due-date">Due {formatDate(assignment.due_date)}</span>
+                        </>
                       )}
                     </div>
+
+                    {/* Title */}
+                    <h4 className="assignment-detail-title">{assignment.title}</h4>
+
+                    {/* Submission info if available */}
                     {assignment.submission && (
                       <div className="submission-info">
                         <div className="submission-status">
@@ -1467,29 +1542,207 @@ export default function CourseDetail() {
         )}
 
         {activeTab === 'materials' && (
-          <div className="tab-content">
-            <div className="materials-list">
+          <div className="tab-content materials-tab-content">
+            {/* Search and Progress Bar */}
+            <div className="materials-header-section">
+              <div className="materials-search-bar">
+                <input
+                  type="text"
+                  placeholder="🔍 Search materials..."
+                  className="materials-search-input"
+                  value={materialSearch}
+                  onChange={(e) => setMaterialSearch(e.target.value)}
+                />
+                <button className="materials-filter-toggle-btn" onClick={() => setShowMaterialFilters(!showMaterialFilters)}>
+                  🎯 Filters {showMaterialFilters ? '▲' : '▼'}
+                </button>
+              </div>
+
+              {/* Progress Bar */}
+              <div className="materials-progress-section">
+                <div className="materials-progress-label">
+                  📊 Progress: {materials.filter(m => m.accessed).length}/{materials.length} materials accessed
+                </div>
+                <div className="materials-progress-bar">
+                  <div
+                    className="materials-progress-fill"
+                    style={{ width: `${materials.length > 0 ? (materials.filter(m => m.accessed).length / materials.length) * 100 : 0}%` }}
+                  ></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Filters Section */}
+            {showMaterialFilters && (
+              <div className="materials-filters-section">
+                <div className="filter-row">
+                  <div className="filter-group">
+                    <label className="filter-label">Type:</label>
+                    <select
+                      className="filter-select"
+                      value={materialTypeFilter}
+                      onChange={(e) => setMaterialTypeFilter(e.target.value)}
+                    >
+                      <option value="all">All Types</option>
+                      <option value="book">Books</option>
+                      <option value="video">Videos</option>
+                      <option value="article">Articles</option>
+                      <option value="research_paper">Research Papers</option>
+                      <option value="slides">Slides</option>
+                      <option value="dataset">Datasets</option>
+                      <option value="software">Software</option>
+                    </select>
+                  </div>
+
+                  <div className="filter-group">
+                    <label className="filter-label">Status:</label>
+                    <select
+                      className="filter-select"
+                      value={materialStatusFilter}
+                      onChange={(e) => setMaterialStatusFilter(e.target.value)}
+                    >
+                      <option value="all">All</option>
+                      <option value="required">Required Only</option>
+                      <option value="optional">Optional Only</option>
+                      <option value="accessed">Accessed</option>
+                      <option value="not_accessed">Not Accessed</option>
+                    </select>
+                  </div>
+
+                  <div className="filter-group">
+                    <label className="filter-label">Group by:</label>
+                    <select
+                      className="filter-select"
+                      value={materialGroupBy}
+                      onChange={(e) => setMaterialGroupBy(e.target.value as 'week' | 'type' | 'none')}
+                    >
+                      <option value="week">By Week</option>
+                      <option value="type">By Type</option>
+                      <option value="none">No Grouping</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Materials List */}
+            <div className="materials-content-area">
               {materials.length === 0 ? (
                 <div className="empty-state-small">
                   <div className="empty-icon-small">📄</div>
                   <div className="empty-text">No materials yet</div>
                 </div>
               ) : (
-                materials.map((material) => (
-                  <div key={material.id} className="material-card">
-                    <div className="material-icon">📄</div>
-                    <div className="material-info">
-                      <h4 className="material-title">{material.title}</h4>
-                      <div className="material-meta">
-                        <span className="material-type">{material.type}</span>
-                        <span className="material-date">{formatDate(material.uploaded_at)}</span>
+                (() => {
+                  // Filter materials
+                  let filteredMaterials = materials.filter(material => {
+                    // Search filter
+                    if (materialSearch &&
+                        !material.material.title.toLowerCase().includes(materialSearch.toLowerCase()) &&
+                        !material.material.description?.toLowerCase().includes(materialSearch.toLowerCase())) {
+                      return false;
+                    }
+
+                    // Type filter
+                    if (materialTypeFilter !== 'all' && material.material.type !== materialTypeFilter) {
+                      return false;
+                    }
+
+                    // Status filter
+                    if (materialStatusFilter === 'required' && !material.required) return false;
+                    if (materialStatusFilter === 'optional' && material.required) return false;
+                    if (materialStatusFilter === 'accessed' && !material.accessed) return false;
+                    if (materialStatusFilter === 'not_accessed' && material.accessed) return false;
+
+                    return true;
+                  });
+
+                  if (filteredMaterials.length === 0) {
+                    return (
+                      <div className="empty-state-small">
+                        <div className="empty-icon-small">🔍</div>
+                        <div className="empty-text">No materials match your filters</div>
                       </div>
-                    </div>
-                    <a href={material.file_url} className="material-download-btn" target="_blank" rel="noopener noreferrer">
-                      Download
-                    </a>
-                  </div>
-                ))
+                    );
+                  }
+
+                  // Group materials
+                  if (materialGroupBy === 'week') {
+                    const grouped = new Map<number, typeof filteredMaterials>();
+
+                    filteredMaterials.forEach(material => {
+                      const weekNum = material.week || 0;
+                      if (!grouped.has(weekNum)) grouped.set(weekNum, []);
+                      grouped.get(weekNum)!.push(material);
+                    });
+
+                    return Array.from(grouped.entries())
+                      .sort(([a], [b]) => a - b)
+                      .map(([week, materials]) => (
+                        <div key={week} className="materials-group">
+                          <h3 className="materials-group-header">
+                            {week === 0 ? '📚 General Resources' : `📅 Week ${week}`}
+                          </h3>
+                          {materials.map((material) => (
+                            <div key={material.id} className="material-card-wrapper">
+                              <MaterialCard
+                                courseMaterial={material}
+                                courseId={id || ''}
+                                onAccess={handleMaterialAccess}
+                                onMarkAsRead={handleMaterialMarkAsRead}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      ));
+                  } else if (materialGroupBy === 'type') {
+                    const grouped = new Map<string, typeof filteredMaterials>();
+
+                    filteredMaterials.forEach(material => {
+                      const type = material.material.type;
+                      if (!grouped.has(type)) grouped.set(type, []);
+                      grouped.get(type)!.push(material);
+                    });
+
+                    return Array.from(grouped.entries())
+                      .sort(([a], [b]) => a.localeCompare(b))
+                      .map(([type, materials]) => (
+                        <div key={type} className="materials-group">
+                          <h3 className="materials-group-header">
+                            {type === 'book' && '📖 Books'}
+                            {type === 'video' && '🎥 Videos'}
+                            {type === 'article' && '📄 Articles'}
+                            {type === 'research_paper' && '📑 Research Papers'}
+                            {type === 'slides' && '📊 Slides'}
+                            {type === 'dataset' && '💾 Datasets'}
+                            {type === 'software' && '💻 Software'}
+                          </h3>
+                          {materials.map((material) => (
+                            <div key={material.id} className="material-card-wrapper">
+                              <MaterialCard
+                                courseMaterial={material}
+                                courseId={id || ''}
+                                onAccess={handleMaterialAccess}
+                                onMarkAsRead={handleMaterialMarkAsRead}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      ));
+                  } else {
+                    // No grouping
+                    return filteredMaterials.map((material) => (
+                      <div key={material.id} className="material-card-wrapper">
+                        <MaterialCard
+                          courseMaterial={material}
+                          courseId={id || ''}
+                          onAccess={handleMaterialAccess}
+                          onMarkAsRead={handleMaterialMarkAsRead}
+                        />
+                      </div>
+                    ));
+                  }
+                })()
               )}
             </div>
           </div>
@@ -1497,7 +1750,7 @@ export default function CourseDetail() {
 
         {activeTab === 'announcements' && (
           <div className="tab-content">
-            <div className="announcements-list">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {announcements.length === 0 ? (
                 <div className="empty-state-small">
                   <div className="empty-icon-small">📢</div>
@@ -1505,13 +1758,44 @@ export default function CourseDetail() {
                 </div>
               ) : (
                 announcements.map((announcement) => (
-                  <div key={announcement.id} className="announcement-card">
-                    <div className="announcement-header">
-                      <h4 className="announcement-title">{announcement.title}</h4>
-                      <span className="announcement-date">{formatDate(announcement.created_at)}</span>
+                    <div key={announcement.id} className="assignment-card">
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
+                        <div style={{ fontSize: '2rem' }}>
+                          {announcement.priority === 'urgent' ? '🚨' : announcement.priority === 'high' ? '📢' : '📌'}
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                            {announcement.priority && announcement.priority !== 'normal' && (
+                              <span
+                                style={{
+                                  padding: '0.25rem 0.625rem',
+                                  borderRadius: '4px',
+                                  fontSize: '0.75rem',
+                                  fontWeight: 600,
+                                  background: announcement.priority === 'urgent' ? '#dc3545' : '#fd7e14',
+                                  color: 'white',
+                                  textTransform: 'uppercase'
+                                }}
+                              >
+                                {announcement.priority}
+                              </span>
+                            )}
+                            <span style={{ color: 'var(--text-light)', fontSize: '0.875rem' }}>
+                              {formatDate(announcement.published_at || announcement.created_at)}
+                            </span>
+                          </div>
+                          <h3 style={{ margin: '0 0 0.75rem 0', fontSize: '1.125rem' }}>{announcement.title}</h3>
+                          <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                            {announcement.content}
+                          </p>
+                          {announcement.author && (
+                            <div style={{ marginTop: '0.75rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                              By {announcement.author.first_name} {announcement.author.last_name}
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    <div className="announcement-content">{announcement.content}</div>
-                  </div>
                 ))
               )}
             </div>

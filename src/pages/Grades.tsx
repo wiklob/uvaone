@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import './Grades.css';
 
@@ -36,6 +37,7 @@ interface CourseWithGrades extends Course {
 }
 
 export default function Grades() {
+  const navigate = useNavigate();
   const [courses, setCourses] = useState<CourseWithGrades[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
@@ -303,7 +305,12 @@ export default function Grades() {
                     ) : (
                       <div className="assignments-list">
                         {course.assignments.map((assignment) => (
-                          <div key={assignment.id} className="assignment-card">
+                          <div
+                            key={assignment.id}
+                            className="assignment-card"
+                            onClick={() => navigate(`/course/${course.id}/assignment/${assignment.id}`)}
+                            style={{ cursor: 'pointer' }}
+                          >
                             <div className="assignment-content">
                               <div className="assignment-left">
                                 <div className="assignment-header">
