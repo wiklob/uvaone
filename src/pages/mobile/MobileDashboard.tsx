@@ -65,7 +65,10 @@ export default function MobileDashboard() {
         .from('course_enrollments')
         .select('course!inner(id, code, title, ects)');
 
-      const coursesList = (enrolledCourses?.map(e => e.course as any as Course) || []) as Course[];
+      const allCoursesList = (enrolledCourses?.map(e => e.course as any as Course) || []) as Course[];
+
+      // Only use the first 4 courses for the dashboard
+      const coursesList = allCoursesList.slice(0, 4);
       setCourses(coursesList);
       const courseIds = coursesList.map(c => c.id);
 
