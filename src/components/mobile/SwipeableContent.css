@@ -1,0 +1,14 @@
+/* Swipeable content container */
+.swipeable-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  will-change: transform;
+  touch-action: pan-y; /* Allow vertical scrolling, horizontal swipes trigger tab change */
+}
+
+/* Ensure content doesn't break layout */
+.swipeable-content > * {
+  min-height: 100%;
+}

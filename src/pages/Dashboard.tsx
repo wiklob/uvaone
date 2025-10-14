@@ -129,7 +129,7 @@ export default function Dashboard() {
 
       if (enrollError) throw enrollError;
 
-      const courses = enrolledCourses?.map(e => e.course as Course) || [];
+      const courses = (enrolledCourses?.map(e => e.course as any as Course) || []) as Course[];
       const courseIds = courses.map(c => c.id);
 
       // Fetch all assignments from all courses

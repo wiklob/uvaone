@@ -1,0 +1,163 @@
+/* Mobile-specific global styles */
+@media (max-width: 768px) {
+  /* Hide desktop sidebar */
+  .sidebar {
+    display: none !important;
+  }
+
+  /* Adjust main content for mobile */
+  .main-content {
+    margin-left: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Dashboard grid - stack vertically */
+  .dashboard-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+    padding: 1rem !important;
+  }
+
+  /* Widgets adjust for mobile */
+  .dashboard-widget {
+    width: 100% !important;
+  }
+
+  /* Course detail page adjustments */
+  .course-detail-page {
+    padding-top: 0 !important;
+  }
+
+  .course-detail-tabs {
+    display: none !important; /* Hidden - we use top tab bar instead */
+  }
+
+  .back-button {
+    display: none !important; /* Hidden - we use mobile header back button */
+  }
+
+  /* Timeline adjustments */
+  .timeline-layout {
+    grid-template-columns: 1fr !important; /* Single column, no minimap */
+  }
+
+  .timeline-minimap {
+    display: none !important; /* Hide minimap on mobile */
+  }
+
+  .timeline-main {
+    width: 100% !important;
+  }
+
+  /* Assignment cards - full width */
+  .assignments-list {
+    padding: 1rem !important;
+  }
+
+  .assignment-detail-card,
+  .assignment-card {
+    width: 100% !important;
+  }
+
+  /* Compact elements */
+  .compact-timeline-item,
+  .compact-assignment-item {
+    padding: 0.75rem !important;
+  }
+
+  /* Page padding adjustments */
+  .page {
+    padding-bottom: 0 !important;
+  }
+
+  .page-header {
+    padding: 1rem !important;
+  }
+
+  .tab-content {
+    padding: 0 !important;
+  }
+
+  /* Course selector adjustments */
+  .course-selector-wrapper {
+    width: 100% !important;
+  }
+
+  .course-selector-header {
+    flex-wrap: wrap !important;
+  }
+
+  .course-selector-toggle {
+    font-size: 0.8rem !important;
+  }
+
+  /* Touch-friendly buttons */
+  button, .nav-link, .tab-item {
+    min-height: 44px !important; /* iOS recommendation */
+  }
+
+  /* Adjust font sizes for mobile */
+  .page-title {
+    font-size: 1.5rem !important;
+  }
+
+  .page-subtitle {
+    font-size: 0.875rem !important;
+  }
+
+  /* Timeline items more compact */
+  .timeline-item-card {
+    margin-bottom: 0.75rem !important;
+  }
+
+  .timeline-item-title {
+    font-size: 0.95rem !important;
+  }
+
+  .timeline-item-metadata {
+    font-size: 0.7rem !important;
+    flex-wrap: wrap !important;
+  }
+
+  /* Grades table responsive */
+  .assignments-table {
+    font-size: 0.8rem !important;
+  }
+
+  .assignments-table th,
+  .assignments-table td {
+    padding: 0.5rem 0.25rem !important;
+  }
+
+  /* Hide less important columns on very small screens */
+  @media (max-width: 480px) {
+    .col-contribution {
+      display: none !important;
+    }
+  }
+
+  /* Materials grid */
+  .materials-content-area {
+    padding: 1rem !important;
+  }
+
+  /* Make dropdowns and modals mobile-friendly */
+  .course-selector-dropdown {
+    max-height: 60vh !important;
+  }
+}
+
+/* Landscape orientation optimizations */
+@media (max-width: 768px) and (orientation: landscape) {
+  .mobile-header {
+    height: 50px !important;
+  }
+
+  .top-tab-bar {
+    height: 42px !important;
+  }
+
+  .global-bottom-nav {
+    height: 48px !important;
+  }
+}

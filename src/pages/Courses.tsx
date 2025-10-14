@@ -27,15 +27,12 @@ interface TimelineItem {
   courseCode: string;
 }
 
-const DEMO_USER_ID = '77777777-7777-7777-7777-777777777777';
-
 export default function Courses() {
   const navigate = useNavigate();
   const { tab } = useParams<{ tab?: string }>();
   const {
     courses,
     allAssignments,
-    allMaterials,
     allAnnouncements,
     loading,
     error
@@ -194,7 +191,7 @@ export default function Courses() {
             description: assignment.description,
             assignmentType: assignment.type,
             dueDate: assignment.due_date,
-            maxPoints: assignment.max_points,
+            maxPoints: assignment.max_points ?? undefined,
             submissionType: assignment.submission_type,
             courseId: assignment.course_id,
             courseCode: assignment.course?.code || ''

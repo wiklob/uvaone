@@ -1,0 +1,22 @@
+/* Mobile layout */
+.mobile-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--background);
+}
+
+/* Mobile content (non-swipeable) */
+.mobile-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 56px; /* Space for bottom nav */
+}
+
+/* Add padding to content to account for bottom nav */
+.swipeable-content {
+  padding-bottom: 56px;
+}
