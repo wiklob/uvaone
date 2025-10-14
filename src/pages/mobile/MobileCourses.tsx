@@ -50,6 +50,65 @@ export default function MobileCourses() {
     }
   }, [contentTab, loading]);
 
+  // Helper function to expand recurring events into multiple occurrences
+  const expandRecurringEvent = (event: any): any[] => {
+    if (!event.is_recurring || !event.recurrence_rule || !event.recurrence_end_date) {
+      return [event]; // Return as-is if not recurring
+    }
+
+    const occurrences: any[] = [];
+    const startDate = new Date(event.start_time);
+    const endDate = new Date(event.end_time);
+    const recurrenceEndDate = new Date(event.recurrence_end_date);
+    const duration = endDate.getTime() - startDate.getTime();
+
+    let currentDate = new Date(startDate);
+    let occurrenceNumber = 0;
+
+    while (currentDate <= recurrenceEndDate) {
+      // Create a new occurrence
+      const occurrenceStart = new Date(currentDate);
+      const occurrenceEnd = new Date(currentDate.getTime() + duration);
+
+      // Remove "Week X" from the title
+      let updatedTitle = event.title;
+      if (updatedTitle) {
+        updatedTitle = updatedTitle.replace(/\s*-?\s*Week \d+/i, '');
+      }
+
+      occurrences.push({
+        ...event,
+        // Generate unique ID for each occurrence
+        id: `${event.id}-occurrence-${occurrenceNumber}`,
+        title: updatedTitle,
+        start_time: occurrenceStart.toISOString(),
+        end_time: occurrenceEnd.toISOString(),
+        // Keep original event ID for navigation
+        original_event_id: event.id
+      });
+
+      occurrenceNumber++;
+
+      // Calculate next occurrence based on recurrence rule
+      switch (event.recurrence_rule) {
+        case 'DAILY':
+          currentDate.setDate(currentDate.getDate() + 1);
+          break;
+        case 'WEEKLY':
+          currentDate.setDate(currentDate.getDate() + 7);
+          break;
+        case 'MONTHLY':
+          currentDate.setMonth(currentDate.getMonth() + 1);
+          break;
+        default:
+          // Unknown recurrence rule, break the loop
+          currentDate = new Date(recurrenceEndDate.getTime() + 1);
+      }
+    }
+
+    return occurrences;
+  };
+
   const fetchAllTimeline = async () => {
     if (courses.length === 0) return;
 
@@ -83,20 +142,25 @@ export default function MobileCourses() {
         eventsData.forEach(event => {
           const lesson = lessonsData.find(l => l.id === event.lesson_id);
           if (lesson) {
-            timeline.push({
-              id: event.id,
-              type: 'lesson',
-              title: event.title || lesson.title,
-              date: event.start_time,
-              endDate: event.end_time,
-              description: event.description || lesson.description,
-              lessonType: lesson.type,
-              isOnline: event.is_online,
-              status: event.status,
-              roomName: lesson.room?.name,
-              facilityName: lesson.room?.facility?.name,
-              courseId: lesson.course_id,
-              courseCode: lesson.course.code
+            // Expand recurring events into multiple occurrences
+            const eventOccurrences = expandRecurringEvent(event);
+
+            eventOccurrences.forEach(occurrence => {
+              timeline.push({
+                id: occurrence.id, // Will be unique for each occurrence
+                type: 'lesson',
+                title: occurrence.title || lesson.title,
+                date: occurrence.start_time,
+                endDate: occurrence.end_time,
+                description: occurrence.description || lesson.description,
+                lessonType: lesson.type,
+                isOnline: occurrence.is_online,
+                status: occurrence.status,
+                roomName: lesson.room?.name,
+                facilityName: lesson.room?.facility?.name,
+                courseId: lesson.course_id,
+                courseCode: lesson.course.code
+              });
             });
           }
         });
