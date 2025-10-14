@@ -1,83 +1,71 @@
-/* Top Tab Bar - iOS Camera Style */
+/* Top Tab Bar - iOS Camera Style with Framer Motion */
 .top-tab-bar {
   position: sticky;
   top: 0;
   z-index: 100;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
-  overflow-x: auto;
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  height: 48px;
+  overflow: hidden;
+  height: 52px;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: pan-y;
 }
 
-.top-tab-bar::-webkit-scrollbar {
-  display: none;
-}
-
-.tab-bar-scroll {
+/* Draggable track */
+.tab-bar-track {
   display: flex;
-  position: relative;
-  min-width: 100%;
-  padding: 0;
+  align-items: center;
   height: 100%;
+  gap: 20px;
+  cursor: grab;
+  will-change: transform;
 }
 
+.tab-bar-track:active {
+  cursor: grabbing;
+}
+
+/* Spacers for padding at start/end */
+.tab-spacer {
+  width: 120px;
+  flex-shrink: 0;
+}
+
+/* Individual tab items */
 .tab-item {
-  flex: 1;
-  min-width: 80px;
-  padding: 8px 8px;
-  background: none;
-  border: none;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  padding: 12px 16px;
+  background: none;
+  border: none;
   cursor: pointer;
-  transition: all 0.2s ease;
   position: relative;
-  color: var(--text-secondary);
-  user-select: none;
+  flex-shrink: 0;
+  min-width: fit-content;
   -webkit-tap-highlight-color: transparent;
+  outline: none;
 }
 
-.tab-item.active {
-  color: var(--primary);
-}
-
-.tab-icon {
-  font-size: 18px;
-  transition: transform 0.2s ease;
-}
-
-.tab-item.active .tab-icon {
-  transform: scale(1.1);
-}
-
+/* Tab label */
 .tab-label {
-  font-size: 10px;
+  font-size: 14px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   line-height: 1;
+  white-space: nowrap;
+  transition: color 0.2s ease;
+  color: var(--text-secondary);
 }
 
-/* Sliding indicator - iOS style */
-.tab-indicator {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  height: 3px;
-  width: calc(100% / 6); /* 6 tabs */
-  background: var(--primary);
-  border-radius: 3px 3px 0 0;
-  transition: transform 0.4s cubic-bezier(0.4, 0.0, 0.2, 1); /* iOS spring curve */
-  will-change: transform;
+.tab-label.active {
+  color: var(--primary);
+  font-weight: 700;
 }
 
-/* Touch feedback */
-.tab-item:active {
-  opacity: 0.6;
+/* Active state for entire button */
+.tab-item:has(.active) {
+  color: var(--primary);
 }
