@@ -1,0 +1,138 @@
+.course-selector-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.course-selector-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  position: relative;
+}
+
+.course-selector-toggle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: white;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.course-selector-toggle:hover {
+  background: var(--background);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.dropdown-arrow {
+  font-size: 0.75rem;
+  transition: transform 0.2s ease;
+}
+
+.course-selector-dropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  min-width: 400px;
+  max-height: 500px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  z-index: 1000;
+  animation: dropdownSlideIn 0.2s ease;
+}
+
+@keyframes dropdownSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.course-selector-option {
+  padding: 1rem 1.25rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  border-bottom: 1px solid var(--border);
+}
+
+.course-selector-option:last-child {
+  border-bottom: none;
+}
+
+.course-selector-option:hover {
+  background: #f5f7fa;
+}
+
+.course-selector-option.active {
+  background: #e8eef3;
+}
+
+.course-option-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.course-option-code {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--primary);
+  text-transform: uppercase;
+}
+
+.check-icon {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.course-option-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.course-option-meta {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.course-selector-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 0.5rem 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .course-selector-toggle {
+    position: static;
+    margin-top: 1rem;
+    width: 100%;
+  }
+
+  .course-selector-dropdown {
+    right: auto;
+    left: 0;
+    width: 100%;
+    min-width: unset;
+  }
+}

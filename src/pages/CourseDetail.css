@@ -75,6 +75,9 @@
   gap: 0.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   overflow-x: auto;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 .tab-button {
@@ -627,7 +630,7 @@
   border-radius: 16px;
   padding: 1.5rem;
   position: sticky;
-  top: 2rem;
+  top: 6rem;
   height: fit-content;
   max-height: calc(100vh - 200px);
   overflow-y: auto;
@@ -2141,4 +2144,16 @@
     width: 100%;
     min-width: unset;
   }
+}
+
+/* Course Badge for All-Courses Timeline */
+.course-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  background: var(--primary);
+  color: white;
+  border-radius: 6px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  margin-right: 0.5rem;
 }

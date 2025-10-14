@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import MaterialCard, { type CourseMaterial as MaterialCardType } from '../components/MaterialCard';
+import CourseSelector from '../components/CourseSelector';
 import './CourseDetail.css';
 
 interface Course {
@@ -76,6 +77,7 @@ export default function CourseDetail() {
   const navigate = useNavigate();
   const location = useLocation();
   const [course, setCourse] = useState<Course | null>(null);
+  const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [assignments, setAssignments] = useState<(Assignment & { submission?: Submission })[]>([]);
   const [materials, setMaterials] = useState<Material[]>([]);
@@ -181,6 +183,15 @@ export default function CourseDetail() {
 
   const fetchCourseData = async () => {
     try {
+      // Fetch all enrolled courses for the course selector
+      const { data: enrolledCourses } = await supabase
+        .from('course_enrollments')
+        .select('course!inner(*)');
+
+      if (enrolledCourses) {
+        setCourses(enrolledCourses.map((e: any) => e.course as Course));
+      }
+
       // Fetch course details
       const { data: courseData, error: courseError } = await supabase
         .from('course')
@@ -490,10 +501,11 @@ export default function CourseDetail() {
         </button>
 
         <div className="course-detail-header">
-          <div className="course-detail-title-section">
-            <h1 className="course-detail-code">{course.code}</h1>
-            <h2 className="course-detail-title">{course.title}</h2>
-          </div>
+          <CourseSelector
+            selectedCourse={id || ''}
+            courses={courses}
+            currentTab="timeline"
+          />
         </div>
 
         <div className="course-detail-content">
@@ -637,14 +649,15 @@ export default function CourseDetail() {
       </button>
 
       <div className="course-detail-header">
-        <div className="course-detail-title-section">
-          <h1 className="course-detail-code">{course.code}</h1>
-          <h2 className="course-detail-title">{course.title}</h2>
-          <div className="course-detail-meta">
-            <span className="meta-item">👨‍🏫 {course.instructor}</span>
-            <span className="meta-item">📚 {course.ects} ECTS</span>
-            {course.schedule && <span className="meta-item">🕐 {course.schedule}</span>}
-          </div>
+        <CourseSelector
+          selectedCourse={id || ''}
+          courses={courses}
+          currentTab={activeTab}
+        />
+        <div className="course-detail-meta">
+          <span className="meta-item">👨‍🏫 {course.instructor}</span>
+          <span className="meta-item">📚 {course.ects} ECTS</span>
+          {course.schedule && <span className="meta-item">🕐 {course.schedule}</span>}
         </div>
       </div>
 

@@ -20,7 +20,7 @@ INSERT INTO material (id, title, type, description, url, availability, authors, 
 ('30000020-0020-0020-0020-000000000020', 'LeetCode Practice Problems', 'dataset', 'Coding interview practice questions', 'https://leetcode.com/', 'open_access', 'LeetCode', 2024, NULL),
 
 -- Database Course Materials
-('30000021-0021-0021-0021-000000000021', 'SQL for Data Scientists', 'book', 'A Beginner's Guide for Building Datasets', NULL, 'library', 'Renee M. P. Teate', 2021, '978-1119669364'),
+('30000021-0021-0021-0021-000000000021', 'SQL for Data Scientists', 'book', 'A Beginner''s Guide for Building Datasets', NULL, 'library', 'Renee M. P. Teate', 2021, '978-1119669364'),
 ('30000022-0022-0022-0022-000000000022', 'PostgreSQL Documentation', 'article', 'Official PostgreSQL documentation', 'https://www.postgresql.org/docs/', 'open_access', 'PostgreSQL Global Development Group', 2024, NULL),
 ('30000023-0023-0023-0023-000000000023', 'Database Design Tutorial', 'video', 'Complete database design course', 'https://www.youtube.com/freeCodeCamp', 'open_access', 'freeCodeCamp', 2023, NULL),
 ('30000024-0024-0024-0024-000000000024', 'Designing Data-Intensive Applications', 'book', 'The Big Ideas Behind Reliable, Scalable Systems', NULL, 'library', 'Martin Kleppmann', 2017, '978-1449373320'),
@@ -37,7 +37,7 @@ INSERT INTO material (id, title, type, description, url, availability, authors, 
 ('30000031-0031-0031-0031-000000000031', 'Eloquent JavaScript', 'book', 'A Modern Introduction to Programming', 'https://eloquentjavascript.net/', 'open_access', 'Marijn Haverbeke', 2018, '978-1593279509'),
 ('30000032-0032-0032-0032-000000000032', 'React Documentation', 'article', 'Official React library documentation', 'https://react.dev/', 'open_access', 'Meta', 2024, NULL),
 ('30000033-0033-0033-0033-000000000033', 'Full Stack Open', 'video', 'Modern web development course', 'https://fullstackopen.com/', 'open_access', 'University of Helsinki', 2024, NULL),
-('30000034-0034-0034-0034-000000000034', 'You Don't Know JS', 'book', 'Deep dive into JavaScript mechanics', 'https://github.com/getify/You-Dont-Know-JS', 'open_access', 'Kyle Simpson', 2020, NULL),
+('30000034-0034-0034-0034-000000000034', 'You Don''t Know JS', 'book', 'Deep dive into JavaScript mechanics', 'https://github.com/getify/You-Dont-Know-JS', 'open_access', 'Kyle Simpson', 2020, NULL),
 ('30000035-0035-0035-0035-000000000035', 'MDN Web Docs', 'article', 'Comprehensive web development reference', 'https://developer.mozilla.org/', 'open_access', 'Mozilla', 2024, NULL),
 
 -- Software Engineering Course Materials
@@ -45,7 +45,7 @@ INSERT INTO material (id, title, type, description, url, availability, authors, 
 ('30000037-0037-0037-0037-000000000037', 'Design Patterns', 'book', 'Elements of Reusable Object-Oriented Software', NULL, 'library', 'Gang of Four', 1994, '978-0201633610'),
 ('30000038-0038-0038-0038-000000000038', 'Software Engineering at Google', 'book', 'Lessons Learned from Programming Over Time', NULL, 'university_license', 'Titus Winters et al.', 2020, '978-1492082798'),
 ('30000039-0039-0039-0039-000000000039', 'Git Handbook', 'article', 'Official Git documentation and guides', 'https://git-scm.com/book/', 'open_access', 'Scott Chacon, Ben Straub', 2024, NULL),
-('30000040-0040-0040-0040-000000000040', 'Continuous Delivery', 'book', 'Reliable Software Releases through Build, Test', NULL, 'library', 'Jez Humble, David Farley', 2010, '978-0321601919'),
+('30000040-0040-0040-0040-000000000040', 'Continuous Delivery', 'book', 'Reliable Software Releases through Build and Test', NULL, 'library', 'Jez Humble, David Farley', 2010, '978-0321601919'),
 
 -- Calculus Course Materials
 ('30000041-0041-0041-0041-000000000041', 'Calculus Made Easy', 'book', 'Classic introduction to differential calculus', NULL, 'library', 'Silvanus P. Thompson', 2018, '978-1475140958'),
@@ -55,14 +55,14 @@ INSERT INTO material (id, title, type, description, url, availability, authors, 
 
 -- Linear Algebra Course Materials
 ('30000045-0045-0045-0045-000000000045', 'Introduction to Linear Algebra', 'book', 'Clear explanations of linear algebra', NULL, 'library', 'Gilbert Strang', 2016, '978-0980232776'),
-('30000046-0046-0046-0046-000000000046', 'MIT Linear Algebra Lectures', 'video', 'Gilbert Strang's legendary MIT course', 'https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/', 'open_access', 'Gilbert Strang', 2010, NULL),
+('30000046-0046-0046-0046-000000000046', 'MIT Linear Algebra Lectures', 'video', 'Gilbert Strang''s legendary MIT course', 'https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/', 'open_access', 'Gilbert Strang', 2010, NULL),
 ('30000047-0047-0047-0047-000000000047', 'Linear Algebra Review', 'article', 'Quick reference for linear algebra concepts', 'http://cs229.stanford.edu/section/cs229-linalg.pdf', 'open_access', 'Stanford CS', 2024, NULL),
 ('30000048-0048-0048-0048-000000000048', 'Essence of Linear Algebra', 'video', 'Visual guide to understanding linear algebra', 'https://www.youtube.com/3blue1brown', 'open_access', 'Grant Sanderson', 2016, NULL),
 
 -- Business Course Materials
 ('30000049-0049-0049-0049-000000000049', 'Business Model Generation', 'book', 'A Handbook for Visionaries, Game Changers', NULL, 'library', 'Alexander Osterwalder, Yves Pigneur', 2010, '978-0470876411'),
 ('30000050-0050-0050-0050-000000000050', 'Harvard Business Review', 'article', 'Leading business management publication', 'https://hbr.org/', 'university_license', 'Harvard Business Publishing', 2024, NULL),
-('30000051-0051-0051-0051-000000000051', 'The Lean Startup', 'book', 'How Today's Entrepreneurs Use Continuous Innovation', NULL, 'library', 'Eric Ries', 2011, '978-0307887894'),
+('30000051-0051-0051-0051-000000000051', 'The Lean Startup', 'book', 'How Today''s Entrepreneurs Use Continuous Innovation', NULL, 'library', 'Eric Ries', 2011, '978-0307887894'),
 ('30000052-0052-0052-0052-000000000052', 'Y Combinator Startup School', 'video', 'Free startup education series', 'https://www.startupschool.org/', 'open_access', 'Y Combinator', 2024, NULL),
 
 -- Accounting Course Materials
